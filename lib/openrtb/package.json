@@ -1,0 +1,58 @@
+{
+  "name": "openrtb",
+  "version": "0.0.5",
+  "description": "A Javascript library which builds and validates OpenRTB objects",
+  "main": "index.js",
+  "scripts": {
+    "test": "mocha -R spec"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Avocarrot/openrtb"
+  },
+  "keywords": [
+    "openrtb",
+    "real",
+    "time",
+    "bidding",
+    "advertising"
+  ],
+  "author": {
+    "name": "The Avocarrot Rockstar Team"
+  },
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/Avocarrot/openrtb/issues"
+  },
+  "homepage": "https://github.com/Avocarrot/openrtb",
+  "dependencies": {
+    "bluebird": "^2.9.24"
+  },
+  "devDependencies": {
+    "mocha": "^2.2.4",
+    "moment": "^2.10.2",
+    "should": "^6.0.1",
+    "timekeeper": "0.0.5"
+  },
+  "gitHead": "1dff39612a8e36ba34dc2e0decc7f3e4a5184a06",
+  "_id": "openrtb@0.0.5",
+  "_shasum": "debaa21defb5310146029a78c6c19a943e7a740d",
+  "_from": "openrtb@*",
+  "_npmVersion": "1.4.28",
+  "_npmUser": {
+    "name": "giorgosera",
+    "email": "giorgosera@gmail.com"
+  },
+  "maintainers": [
+    {
+      "name": "giorgosera",
+      "email": "giorgosera@gmail.com"
+    }
+  ],
+  "dist": {
+    "shasum": "debaa21defb5310146029a78c6c19a943e7a740d",
+    "tarball": "http://registry.npmjs.org/openrtb/-/openrtb-0.0.5.tgz"
+  },
+  "directories": {},
+  "_resolved": "http://registry.npmjs.org/openrtb/-/openrtb-0.0.5.tgz"
+}
