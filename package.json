@@ -9,7 +9,11 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "bcrypt": "^0.8.3",
+    "bluebird": "^2.9.30",
     "body-parser": "^1.13.1",
+    "bookshelf": "^0.8.1",
+    "checkit": "^0.5.1",
     "compression": "^1.5.0",
     "connect-flash": "^0.1.1",
     "connect-multiparty": "^1.2.5",
@@ -23,11 +27,13 @@
     "helmet": "^0.9.1",
     "jade": "^1.11.0",
     "jsonschema": "^1.0.1",
+    "knex": "^0.8.6",
     "lodash": "^3.9.3",
     "method-override": "^2.3.3",
     "moment": "^2.10.3",
     "morgan": "^1.6.0",
     "mysql": "^2.7.0",
-    "openrtb": "0.0.5"
+    "openrtb": "0.0.5",
+    "q": "^1.4.1"
   }
 }

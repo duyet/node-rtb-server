@@ -6,15 +6,19 @@ var _ = require('lodash');
 var glob = require('glob');
 
 module.exports = {
-	app: {
-		title: 'BGate Bidding Agent',
-	},
+	domain: 'http://ptnhttt.uit.edu.vn',	
 	port: process.env.PORT || 8899,
+	bidsPath: 'bids',
+	winPath: 'win',
+	lossPath: 'loss',
+
 	sessionSecret: 'LvDuit',
 	sessionCollection: 'sessions',
 	tmpDir: 'tmp/',
 	uploadPath: 'public/uploads'
 }
+
+module.exports.global = require('./global.js');
 
 module.exports.getGlobbedFiles = function(globPatterns, removeRoot) {
 	// For context switching

@@ -1,12 +1,8 @@
 'use strict';
 
 module.exports = {
-	name: 'DCrawler',
-
-	// The folder of modules spider
-	modulesDir: 'modules',
-
-	// Module Ignore will not run
-	// Ex. ['tinhte.js']
-	ignoreModule: ['tinhte.js'],
+	port: 8899,
+	bidsPath: 'bids',
+	winPath: 'win',
+	lossPath: 'loss'
 };

@@ -79,17 +79,11 @@ var fs = require('fs'),
 	app.disable('x-powered-by');
 
 	app.use(function(req, res, next) {
-		res.setHeader("Access-Control-Allow-Origin", "*");
-		res.setHeader("Content-Type","application/json");
+		//res.setHeader("Access-Control-Allow-Origin", "*");
+		//res.setHeader("Content-Type","application/json");
 		return next();
 	});
 
-	// Upload file
-	app.use(multipart({
-		uploadDir: path.resolve(config.tmpDir)
-	}));
-
-	// Globbing routing files
 	require(path.resolve("./config/routes.js"))(app);
 
 	// Assume 404 since no middleware responded
@@ -109,6 +103,8 @@ var fs = require('fs'),
 
 		res.status(500).send({"CODE":500,"ERR":1, "MESSAGE": err.stack});
 	});
+
+
 
 console.info("Listening in port " + config.port + " ...");
 http.createServer(app).listen(config.port);
