@@ -78,10 +78,28 @@ var fs = require('fs'),
 	app.use(helmet.ienoopen());
 	app.disable('x-powered-by');
 
+	/*
 	app.use(function(req, res, next) {
-		//res.setHeader("Access-Control-Allow-Origin", "*");
+		res.setHeader("Access-Control-Allow-Origin", "*");
+		res.setHeader("Access-Control-Allow-Credentials", "true");
+		res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
+		res.header("Access-Control-Allow-Headers", "X-Requested-With");
 		//res.setHeader("Content-Type","application/json");
 		return next();
+	});
+	*/
+
+	app.use(function(req, res, next) {
+	   res.header("Access-Control-Allow-Origin", "*");
+	   res.header('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,OPTIONS');
+	   res.header("Access-Control-Allow-Headers", "x-openrtb-version,Content-Type,*");
+	   if (req.method === 'OPTIONS') {
+	   
+	    res.statusCode = 204;
+	    return res.end();
+	  } else {
+	    return next();
+	  }
 	});
 
 	require(path.resolve("./config/routes.js"))(app);
@@ -101,7 +119,7 @@ var fs = require('fs'),
 
 		// Error page
 
-		res.status(500).send({"CODE":500,"ERR":1, "MESSAGE": 'Server error.'});
+		res.status(500).send({"CODE":500,"ERR":1, "MESSAGE": err.stack});
 	});
 
 

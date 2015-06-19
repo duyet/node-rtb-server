@@ -8,11 +8,12 @@ module.exports = function(app) {
 	var impTracker = require('../system/impTrackerController.js');
 	var clickTRacker = require('../system/clickTrackerController.js');
 
+
 	app.route('/').get(function(req, res) { res.send("Hi, bye!"); });
 	
 	app.route('/' + config.bidsPath)
-		.get(bids.index)
-		.post(bids.bids);
+		//.get(bids.index)
+		.all(bids.bids);
 
 	app.route('/' + config.impTrackerPath)
 		.get(impTracker.tracker);
