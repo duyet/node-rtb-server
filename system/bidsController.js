@@ -1,39 +1,14 @@
 'use strict';
 
 var moment = require('moment');
-var openrtb = require('../lib/openrtb');
+//var openrtb = require('../lib/openrtb');
 var _ = require('lodash');
 
 var config = require('../config/config');
 
 var Model = require('../config/db').Model;
-var checkit  = require('checkit');
-var bcrypt   = require('bcrypt');
 
-
-// ==================================
-// DATABASE CONSTRUCT
-// ==================================
-
-var DemandCustomerInfo = Model.extend({
-	tableName: 'DemandCustomerInfo',
-	idAttribute: 'DemandCustomerInfoID'
-});
-
-var auth_Users = Model.extend({
-	tableName: 'auth_Users',
-	idAttribute: 'user_id'
-});
-
-var AdCampaignPreview = Model.extend({
-	tableName: 'AdCampaignPreview',
-	idAttribute: 'AdCampaignPreviewID'
-});
-
-var AdCampaignBannerPreview = Model.extend({
-	tableName: 'AdCampaignBannerPreview',
-	idAttribute: 'AdCampaignBannerPreviewID'
-});
+var build = require('../helper/builder');
 
 // ==================================
 // INIT BID REQUEST PARAM
@@ -41,6 +16,7 @@ var AdCampaignBannerPreview = Model.extend({
 var bidReq = {
 	id: '',
 	imp: [],
+	tmax: 120,
 	site: {
 		"id": "-1",
 		"domain" : "",
@@ -61,62 +37,7 @@ var isBidTimeout = false;
 // ==================================
 // LOAD ALL BANNER TO CACHE
 // ==================================
-var BGateAgent = {
-	agents : [],
-	listBanner : [],
-
-	init : function(next) {
-		new DemandCustomerInfo({}).fetchAll().then(function(_demandUsers) {
-			if (!_demandUsers) return;
-
-
-
-			_demandUsers.forEach(function(_demandUser) {
-				var demandUser = _demandUser.attributes;
-				var adv = {};
-
-				new auth_Users({
-					DemandCustomerInfoID: demandUser.DemandCustomerInfoID, 
-					user_enabled: 1, 
-					user_verified: 1, 
-					user_agreement_accepted: 1
-				}).fetch().then(function(user) {
-					if (!user) return false;
-					var user = user.attributes;
-
-					if (!user) return false;
-					user.banner = [];
-
-					new AdCampaignBannerPreview({UserID: user.UserID}).fetchAll().then(function(collection) {
-						collection.forEach(function(banner) {
-							banner = banner.attributes;
-							// Filter me 
-							if (!passSelfBannerFilter(banner)) return;
-							user.banner.push(banner);
-
-							//BGateAgent.listBanner.push(banner);
-						});
-
-						//console.log(_.merge(user, demandUser));
-						BGateAgent.agents.push(_.merge(user, demandUser));
-					});
-
-				});
-
-			});
-		}).then(function() {
-			next();	
-		});
-	},
-
-	getAgents: function() {
-		return BGateAgent.agents;
-	}
-};
-
-BGateAgent.init(function() {
-	console.log(BGateAgent.agents);
-});
+var BGateAgent = require('../helper/BgateAgent.js');
 
 
 exports.index = function(req, res) {
@@ -130,7 +51,11 @@ exports.index = function(req, res) {
 exports.bids = function(req, res) {
 	isBidTimeout = false;
 
+	console.info("============================================================");
+	console.info("============================================================");
 	console.log("TRACK: On Bid request - ", moment.utc().format());
+	console.info("============================================================");
+	console.info("============================================================");
 
 
 	// ==================================
@@ -156,6 +81,9 @@ exports.bids = function(req, res) {
 		bidReq.site.page = req.body.site.page || bidReq.site.page;
 		if (req.body.site.publisher) bidReq.site.publisher = req.body.site.publisher;
 	}
+
+	// Bid Timeout 
+	if (req.body.tmax && req.body.tmax > 0) bidReq.tmax = bidTimeout = req.body.tmax;
 
 	var results = [];
 	req.body.imp.forEach(function(i) {
@@ -208,7 +136,7 @@ exports.bids = function(req, res) {
 				var b = banner;
 				// Asign to request imp id
 				b.impId = newImp.id;
-				b.auctionId = buildAuctionId(b.AdCampaignBannerPreviewID);
+				b.auctionId = build.AuctionId(b.AdCampaignBannerPreviewID);
 
 				winBanners.push(b);
 			}
@@ -251,6 +179,8 @@ exports.bids = function(req, res) {
 var generateEmptyResponse = function(res) {
 	isBidTimeout = true; // Generate response, also mean timeout for bidding
 	console.log('TRACK: No response.');
+	console.info("============================================================");
+	console.info("============================================================");
 	return res.status(204).send();
 }
 
@@ -265,7 +195,6 @@ var generateBidResponse = function(res, bidReq, bidRes) {
 
 	//console.log("Bid response data: ", bidRes);
 
-    var builder = openrtb.getBuilder({builderType:'bidResponse'}); 
 	if (!bidRes.length) return generateEmptyResponse(res);
 
 	// TODO: Support multi bidding
@@ -273,10 +202,68 @@ var generateBidResponse = function(res, bidReq, bidRes) {
 
 	if (!bid_res) return generateEmptyResponse(res);
 
-	bid_res.bgateSalt = bcrypt.genSaltSync(10);
+	bid_res.bgateSalt = build.genHash('123456');// bcrypt.genSaltSync(10);
 	//console.log('BID RESPONSE DATA: ', bidRes);
 
-	// Build response
+	// ===============================================
+	// BUILD RESPONSE
+	// ===============================================
+	var bidResponse = {};
+	bidResponse.id = ""; // Bid response id 
+
+	bidResponse.seatbid = [
+		{
+			bid: [
+				{
+					// Bid ID
+					id : build.genHash(String(bid_res.AdCampaignBannerPreviewID)), // bcrypt.hashSync(String(bid_res.AdCampaignBannerPreviewID), bid_res.bgateSalt)
+
+					// Imp ID
+					impid: bid_res.impId,
+
+					// Price
+					price: bid_res.BidAmount || 0.0,
+
+					// Adm - Ad tag
+					adm: build.AdmTag(bidReq, bid_res),
+
+					// Domain 
+					adomain: [bid_res.LandingPageTLD || ""],
+
+					// Creative ID for reporting content issues or defects. This could also be used as a
+					// reference to a creative ID that is posted with an exchange.
+					crid: bid_res.AdCampaignBannerPreviewID,
+
+					// Campaign ID or similar that appears within the ad markup.
+					cid: bid_res.AdCampaignPreviewID,
+
+					// Win Notice
+					nurl: build.WinBidUrl(bidReq, bid_res), 
+
+					// Sample image URL (without cache busting) for content checking
+					lurl: '',
+
+					// TODO: ext later 
+					ext: {},
+
+					next_highest_bid_price: 0.0,
+
+					// Status 
+					status: 1,
+
+					adid: bid_res.AdCampaignBannerPreviewID || 0,
+				}
+			]
+		}
+	];
+
+	console.log("SEND BIDDING RESPONSE!!");
+	console.info("============================================================");
+	console.info("============================================================\n\n");
+
+    res.jsonp(bidResponse);
+
+	/*
     builder
     .timestamp(moment.utc().format())
 	.status(1)
@@ -290,8 +277,8 @@ var generateBidResponse = function(res, bidReq, bidRes) {
 					id: bcrypt.hashSync(String(bid_res.AdCampaignBannerPreviewID), bid_res.bgateSalt),
 					impid: bid_res.impId,
 					price: bid_res.BidAmount || 0,
-					nurl: buildWinBidUrl(bid_res), // Win Notice
-					adm: buildAdmTag(bid_res), // Ad tag
+					nurl: build.WinBidUrl(bidReq, bid_res), // Win Notice
+					adm: build.AdmTag(bid_res), // Ad tag
 					cid: bid_res.impId,
 					crid: bid_res.impId,
 					iurl: bid_res.AdUrl, // Image URL
@@ -302,9 +289,9 @@ var generateBidResponse = function(res, bidReq, bidRes) {
     ])
     .build()
     .then(function(bidResponse){
-    	console.log("SEND BIDDING RESPONSE!!");
-        res.jsonp(bidResponse);
+    	
     });
+	*/
 
     console.timeEnd("TIMER: Generate Bid Response")
 }
@@ -315,96 +302,6 @@ var filterBannerResult = function(winBanners) {
 	// More filter here
 
 	return winBanners[0];
-}
-
-var passSelfBannerFilter = function(banner) {
-	if (!banner) return false;
-
-	if (banner.StartDate) {
-		var startDate = moment(banner.StartDate);
-		if (moment().diff(startDate, "seconds") < 0) return false; 
-	}
-
-	if (banner.EndDate) {
-		var endDate = moment(banner.EndDate);
-		if (moment().diff(endDate, "seconds") > 0) return false; 
-	}
-
-	return true;
-}
-
-var buildWinBidUrl = function(bid_res) {
-	var url = '';
-	url += config.domain + ':' + config.port + '/' + config.winPath;
-	url += '?pid='+ bcrypt.hashSync(String(bid_res.AdCampaignBannerPreviewID), bid_res.bgateSalt);
-	url += '&cid=' + bid_res.AdCampaignBannerPreviewID;
-	url += '&type=win';
-	url += '&impId=' + bid_res.impId;
-	url += '&auctionId=' + bid_res.auctionId;
-	url += '&site=' + bidReq.site.page;
-	url += '&data=OuJifVtEK&price=${AUCTION_PRICE}';
-
-	return url;
-}
-
-var buildClickTrackerUrl = function(bid_res) {
-	console.time("TIMER: Build Click Tracker URL");
-	var url = '';
-	url += config.domain + ':' + config.port + '/' + config.winPath;
-	url += '?pid='+ bcrypt.hashSync(String(bid_res.AdCampaignBannerPreviewID), bid_res.bgateSalt);
-	url += '&cid=' + bid_res.AdCampaignBannerPreviewID;
-	url += '&type=click_tracker';
-	url += '&impId=' + bid_res.impId;
-	url += '&auctionId=' + bid_res.auctionId;
-	url += '&site=' + bidReq.site.page;
-	url += '&data=OuJifVtEK&price=${AUCTION_PRICE}';
-
-	console.timeEnd("TIMER: Build Click Tracker URL")
-
-	return url;
-}
-
-var buildAuctionId = function(bannerId) {
-	var id = bcrypt.hashSync(String(bannerId) + "/" + String(moment()), bcrypt.genSaltSync(10))
-	// TODO: Save auctionId to db
-
-	return id;
-};
-
-var buildAdmTag = function(bid_res) {
-	console.time("TIMER: Build Adm Tag");
-
-	if (!bid_res) return '';
-	
-	/*********************************************************
-	// USING JSDOM TO GENERATE, Take a lots of time to do it!!
-
-	var jsdom = require("jsdom").jsdom;
-	var window = jsdom().parentWindow;
-
-	var admTag = window.document.createElement('iframe');
-	
-		var clickTag = window.document.createElement('a');
-		clickTag.href = buildClickTrackerUrl(bid_res);
-
-			var imgTag = window.document.createElement('img');
-			imgTag.src = bid_res.AdUrl;
-
-		clickTag.appendChild(imgTag);
-	admTag.appendChild(clickTag);
-	**********************************************************/
-
-	// USING STRING CONCAT, It's save my life
-	var admTag = "";
-	admTag += "<iframe src=\"#\" border=\"0\" width=\"" + bid_res.Width + "\" height=\"" + bid_res.Height + "\">";
-	admTag += "<a href=\""+ buildClickTrackerUrl(bid_res) +"\">";
-	admTag += "<img src=\"" + bid_res.AdUrl + "\" />";
-	admTag += "</a>";
-	admTag += "</iframe>";
-	
-	console.timeEnd("TIMER: Build Adm Tag");
-
-	return admTag;
 }
 
 var bid = function(newImp, agent) {
@@ -425,7 +322,7 @@ var bid = function(newImp, agent) {
 		// -------------------------------
 		// Asign to request imp id
 		banner.impId = newImp.id;
-		banner.auctionId = buildAuctionId(banner.AdCampaignBannerPreviewID);
+		banner.auctionId = build.AuctionId(banner.AdCampaignBannerPreviewID);
 
 		// Start do bidding
 		doBid(banner);
@@ -438,4 +335,3 @@ var doBid = function(banner) {
 	console.log("TRACK: DO BID!");
 	biddingQueue.push(banner);
 }
-

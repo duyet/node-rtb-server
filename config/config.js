@@ -13,6 +13,7 @@ module.exports = {
 	lossPath: 'loss',
 	impTrackerPath: 'imptracker',
 	clickTrackerPath: 'click_tracker',
+	bannerRenderPath: 'banner_render',
 
 	sessionSecret: 'LvDuit',
 	sessionCollection: 'sessions',

@@ -17,8 +17,7 @@ var fs = require('fs'),
 	helmet = require('helmet'),
 	flash = require('connect-flash'),
 	config = require('./config/config'),
-	consolidate = require('consolidate'),
-	path = require('path'),
+	compression = require('compression'),
 	multipart = require('connect-multiparty'),
 	db = require('./config/db');
 
@@ -56,7 +55,7 @@ var fs = require('fs'),
 	}));
 	
 	app.use(bodyParser.json());
-
+	app.use(compression()); //use compression 
 	app.use(methodOverride());
 	
 	app.use(expressValidator({
@@ -102,7 +101,7 @@ var fs = require('fs'),
 	  }
 	});
 
-	require(path.resolve("./config/routes.js"))(app);
+	require("./config/routes.js")(app);
 
 	// Assume 404 since no middleware responded
 	app.use(function(req, res) {
