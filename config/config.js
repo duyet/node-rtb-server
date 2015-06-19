@@ -11,6 +11,8 @@ module.exports = {
 	bidsPath: 'bids',
 	winPath: 'win',
 	lossPath: 'loss',
+	impTrackerPath: 'imptracker',
+	clickTrackerPath: 'click_tracker',
 
 	sessionSecret: 'LvDuit',
 	sessionCollection: 'sessions',

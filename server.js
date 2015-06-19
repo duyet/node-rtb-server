@@ -101,7 +101,7 @@ var fs = require('fs'),
 
 		// Error page
 
-		res.status(500).send({"CODE":500,"ERR":1, "MESSAGE": err.stack});
+		res.status(500).send({"CODE":500,"ERR":1, "MESSAGE": 'Server error.'});
 	});
 
 

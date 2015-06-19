@@ -8,8 +8,22 @@ var config = require('../config/config');
 
 var Model = require('../config/db').Model;
 var checkit  = require('checkit');
-var Promise  = require('bluebird');
 var bcrypt   = require('bcrypt');
+
+var DemandCustomerInfo = Model.extend({
+	tableName: 'DemandCustomerInfo',
+	idAttribute: 'DemandCustomerInfoID'
+});
+
+var auth_Users = Model.extend({
+	tableName: 'auth_Users',
+	idAttribute: 'user_id'
+});
+
+var AdCampaignPreview = Model.extend({
+	tableName: 'AdCampaignPreview',
+	idAttribute: 'AdCampaignPreviewID'
+});
 
 var AdCampaignBannerPreview = Model.extend({
 	tableName: 'AdCampaignBannerPreview',
@@ -20,41 +34,95 @@ var AdCampaignBannerPreview = Model.extend({
 // LOAD ALL BANNER TO CACHE
 // ==================================
 var BGateAgent = {
+	agents : [],
 	listBanner : [],
 
-	init : function() {
-		new AdCampaignBannerPreview().fetchAll().then(function(collection) {
-			collection.forEach(function(banner) {
-				BGateAgent.listBanner.push(banner.attributes);
+	init : function(next) {
+		new DemandCustomerInfo({}).fetchAll().then(function(_demandUsers) {
+			if (!_demandUsers) return;
+
+
+
+			_demandUsers.forEach(function(_demandUser) {
+				var demandUser = _demandUser.attributes;
+				var adv = {};
+
+				new auth_Users({
+					DemandCustomerInfoID: demandUser.DemandCustomerInfoID, 
+					user_enabled: 1, 
+					user_verified: 1, 
+					user_agreement_accepted: 1
+				}).fetch().then(function(user) {
+					if (!user) return false;
+					var user = user.attributes;
+
+					if (!user) return false;
+					user.banner = [];
+
+					new AdCampaignBannerPreview({UserID: user.UserID}).fetchAll().then(function(collection) {
+						collection.forEach(function(banner) {
+							user.banner.push(banner.attributes);
+
+							BGateAgent.listBanner.push(banner.attributes);
+						});
+
+						//console.log(_.merge(user, demandUser));
+						BGateAgent.agents.push(_.merge(user, demandUser));
+					});
+
+				});
+
 			});
 		}).then(function() {
-			BGateAgent.listBanner = _.sortBy(BGateAgent.listBanner, function(n) {
-				return n.BidAmount;
-			});
+			next();	
+		});
+	},
 
-			console.log("Number of banner in memmory: " + _.size(BGateAgent.listBanner));
-			console.log(BGateAgent.listBanner);
-		})		
+	getAgents: function() {
+		return BGateAgent.agents;
 	}
-
 };
 
-BGateAgent.init();
+BGateAgent.init(function() {
+	console.log(BGateAgent.agents);
+});
+
 
 exports.index = function(req, res) {
-	res.send("Hello!!");
+	res.jsonp(BGateAgent.agents);
+	//res.send("Hello!!");
 };
 
-exports.bids = function(req, res) {
-	console.log("TRACK: On Bid request - ", moment.utc().format());
+// ==================================
+// INIT BID REQUEST PARAM
+// ==================================
+var bidReq = {
+	id: '',
+	imp: [],
+	site: {
+		"id": "-1",
+		"domain" : "",
+		"cat" : [],
+		"page" : "",
+		"publisher" : {}
+	},
+	user: {"id": ""},
+	device: {"ua": "", "ip": ""},
+	at: 0,
+	cur: ["USD"]
+};
 
-    // ==================================
-    // INIT PARAM
-    // ==================================
-    var bidReq = {
-    	id: '',
-    	imp: [],
-    };
+var bidTimeout = 1;
+var biddingQueue = [];
+var isBidTimeout = false;
+
+// ==================================
+// BID LISTENER
+// ==================================
+exports.bids = function(req, res) {
+	isBidTimeout = false;
+
+	console.log("TRACK: On Bid request - ", moment.utc().format());
 
 	// ==================================
 	// VALIDATE BIDS REQUEST
@@ -66,6 +134,20 @@ exports.bids = function(req, res) {
 	// ==================================
 	// COLLECT DATA
 	// ==================================
+	bidReq.id = req.body.id;
+	bidReq.at = req.body.at || bidReq.at;
+	if (req.body.device) {
+		bidReq.device.ua = req.body.device.ua || bidReq.device.ua;
+		bidReq.device.ip = req.body.device.ip || bidReq.device.ip;
+	}
+	if (req.body.site) {
+		bidReq.site.id = req.body.site.id || bidReq.site.id;
+		bidReq.site.domain = req.body.site.domain || bidReq.site.domain;
+		bidReq.site.cat = req.body.site.cat || bidReq.site.cat;
+		bidReq.site.page = req.body.site.page || bidReq.site.page;
+		if (req.body.site.publisher) bidReq.site.publisher = req.body.site.publisher;
+	}
+
 	var results = [];
 	req.body.imp.forEach(function(i) {
 		// ==================================
@@ -105,7 +187,11 @@ exports.bids = function(req, res) {
 			return banner.Width == newImp.banner.width && banner.Height == newImp.banner.height && banner.BidAmount >= newImp.bidfloor;
 		}), 'Width,Height');*/
 
+		_.map(BGateAgent.agents, _.curry(bid)(newImp));
+
 		console.log("Find banner with: width = " + newImp.banner.width + ", height = " + newImp.banner.height + ", bidfloor = " + newImp.bidfloor)
+		
+		/*
 		var winBanners = [];
 		BGateAgent.listBanner.forEach(function(banner) {
 			if (!passSelfBannerFilter(banner)) return;
@@ -113,69 +199,93 @@ exports.bids = function(req, res) {
 				var b = banner;
 				// Asign to request imp id
 				b.impId = newImp.id;
+				b.auctionId = buildAuctionId(b.AdCampaignBannerPreviewID);
 
 				winBanners.push(b);
 			}
 		});
-		console.log('---> ', winBanners);
+		//console.log('---> ', winBanners);
 
 		// TODO: More filter
 		// ...........................
 		var banner = filterBannerResult(winBanners);
 		results.push(banner);
+		*/
 	});
 
 	// ==================================
-	// GENERATE RESPONSE 
+	// WAITING FOR BIDDING FROM AGENT
 	// ==================================
-	generateBidResponse(res, bidReq, results);
+	var biddingTimeout = setTimeout(function() {
+		// Choose win bidding
+		console.log("biddingQueue", biddingQueue);
+
+		// ==================================
+		// WHO'S WIN?
+		// ==================================
+		if (!biddingQueue) return generateEmptyResponse(res);
+		var results = [biddingQueue[0]];
+
+		// ==================================
+		// GENERATE RESPONSE 
+		// ==================================
+		generateBidResponse(res, bidReq, results);
+
+	}, bidTimeout);
+
+	//clearTimeout(biddingTimeout);
 };
 
+var generateEmptyResponse = function(res) {
+	isBidTimeout = true; // Generate response, also mean timeout for bidding
+	console.log('TRACK: No response.');
+	return res.status(204).send();
+}
+
 var generateBidResponse = function(res, bidReq, bidRes) {
+	isBidTimeout = true; // Generate response, also mean timeout for bidding
 	if (!bidRes || !bidReq) {
 		console.log('TRACK: No response.');
-		return res.status(204).send();
+		return generateEmptyResponse(res);
 	}
 
-	console.log("Bid response data: ", bidRes);
+	//console.log("Bid response data: ", bidRes);
 
     var builder = openrtb.getBuilder({builderType:'bidResponse'}); 
+	if (!bidRes.length) return generateEmptyResponse(res);
 
-    var bgateSalt = bcrypt.genSaltSync(10);
+	// TODO: Support multi bidding
+	var bid_res = bidRes[0] || false;
 
-    var bids = [];
-    bidRes.forEach(function(bid_res) {
-    	if (!bid_res) return;
-    	var bid = {
-			status: 1,
-			clearPrice: 0.9,
-			adid: 1,
-			id: bcrypt.hashSync(String(bid_res.AdCampaignBannerPreviewID), bgateSalt),
-			impid: bid_res.impId,
-			price: bid_res.BidAmount || 0,
-			nurl: config.domain + ':' + config.port + '/' + config.winPath + '?pid='+ bcrypt.hashSync(String(bid_res.AdCampaignBannerPreviewID), bgateSalt) +'&data=OuJifVtEK&price=${AUCTION_PRICE}',
-			adm: '{"native":{"assets":[{"id":0,"title":{"text":"Test Campaign"}},{"id":1,"img":{"url":"http://cdn.exampleimage.com/a/100/100/2639042","w":100,"h":100}},{"id":2,"img":{"url":"http://cdn.exampleimage.com/a/50/50/2639042","w":50,"h":50}},{"id":3,"data":{"value":"This is an amazing offer..."}},{"id":5,"data":{"value":"Install"}}],"link":{"url":"http://trackclick.com/Click?data=soDvIjYdQMm3WBjoORcGaDvJGOzgMvUap7vAw2"},"imptrackers":["http://trackimp.com/Pixel/Impression/?bidPrice=${AUCTION_PRICE}&data=OuJifVtEKZqw3Hw7456F-etFgvhJpYOu0&type=img"]}}',
-			cid: '9607',
-			crid: '335224',
-			iurl: 'http://cdn.testimage.net/1200x627.png',
-			adomain: [bid_res.LandingPageTLD || ""] 
-		};
+	if (!bid_res) return generateEmptyResponse(res);
 
-        bids.push(bid);
-    });
+	bid_res.bgateSalt = bcrypt.genSaltSync(10);
+	//console.log('BID RESPONSE DATA: ', bidRes);
 
-	if (!bids.length) {
-		console.log('TRACK: No response.');
-		return res.status(204).send();
-	}
-
+	// Build response
     builder
     .timestamp(moment.utc().format())
 	.status(1)
-    .bidderName('test-bidder')
-    .seatbid([{
-		bid: bids
-	}])
+    .bidderName('bgate')
+    .seatbid([
+        {
+            bid: [
+                {
+					status: 1,
+					adid: bid_res.AdCampaignBannerPreviewID || 0,
+					id: bcrypt.hashSync(String(bid_res.AdCampaignBannerPreviewID), bid_res.bgateSalt),
+					impid: bid_res.impId,
+					price: bid_res.BidAmount || 0,
+					nurl: buildWinBidUrl(bid_res), // Win Notice
+					adm: buildAdmTag(bid_res), // Ad tag
+					cid: bid_res.impId,
+					crid: bid_res.impId,
+					iurl: bid_res.AdUrl, // Image URL
+					adomain: [bid_res.LandingPageTLD || ""] 
+                } 
+            ]
+        }
+    ])
     .build()
     .then(function(bidResponse){
     	console.log("SEND BIDDING RESPONSE!!");
@@ -196,6 +306,102 @@ var passSelfBannerFilter = function(banner) {
 
 	if (banner.StartDate) {
 		var startDate = moment(banner.StartDate);
-		if (moment().diff(startDate, "seconds") > 0)
+		if (moment().diff(startDate, "seconds") < 0) return false; 
 	}
+
+	if (banner.EndDate) {
+		var endDate = moment(banner.EndDate);
+		if (moment().diff(endDate, "seconds") > 0) return false; 
+	}
+
+	return true;
 }
+
+var buildWinBidUrl = function(bid_res) {
+	var url = '';
+	url += config.domain + ':' + config.port + '/' + config.winPath;
+	url += '?pid='+ bcrypt.hashSync(String(bid_res.AdCampaignBannerPreviewID), bid_res.bgateSalt);
+	url += '&cid=' + bid_res.AdCampaignBannerPreviewID;
+	url += '&type=win';
+	url += '&impId=' + bid_res.impId;
+	url += '&auctionId=' + bid_res.auctionId;
+	url += '&site=' + bidReq.site.page;
+	url += '&data=OuJifVtEK&price=${AUCTION_PRICE}';
+
+	return url;
+}
+
+var buildClickTrackerUrl = function(bid_res) {
+	var url = '';
+	url += config.domain + ':' + config.port + '/' + config.winPath;
+	url += '?pid='+ bcrypt.hashSync(String(bid_res.AdCampaignBannerPreviewID), bid_res.bgateSalt);
+	url += '&cid=' + bid_res.AdCampaignBannerPreviewID;
+	url += '&type=click_tracker';
+	url += '&impId=' + bid_res.impId;
+	url += '&auctionId=' + bid_res.auctionId;
+	url += '&site=' + bidReq.site.page;
+	url += '&data=OuJifVtEK&price=${AUCTION_PRICE}';
+
+	return url;
+}
+
+var buildAuctionId = function(bannerId) {
+	var id = bcrypt.hashSync(String(bannerId) + "/" + String(moment()), bcrypt.genSaltSync(10))
+	// TODO: Save auctionId to db
+
+	return id;
+};
+
+var buildAdmTag = function(bid_res) {
+	if (!bid_res) return '';
+	
+	var jsdom = require("jsdom").jsdom;
+	var window = jsdom().parentWindow;
+
+	var admTag = window.document.createElement('iframe');
+	
+		var clickTag = window.document.createElement('a');
+		clickTag.href = buildClickTrackerUrl(bid_res);
+
+			var imgTag = window.document.createElement('img');
+			imgTag.src = bid_res.AdUrl;
+
+		clickTag.appendChild(imgTag);
+	admTag.appendChild(clickTag);
+
+	return admTag.outerHTML;
+}
+
+var bid = function(newImp, agent) {
+	if (isBidTimeout) return false; // Bidding timeout
+	if (!agent || !newImp) return false;
+	if (!agent.banner) return false;
+
+	agent.banner.forEach(function(banner) {
+		if (!passSelfBannerFilter(banner)) return;
+
+		// Check bid floor
+		if (banner.BidAmount < newImp.bidfloor) return false;
+
+		// Check width and height
+		if (banner.Width != newImp.banner.width || banner.Height != newImp.banner.height) return false;
+
+		// -------------------------------
+		// Pass all, and gone here
+		// -------------------------------
+		// Asign to request imp id
+		b.impId = newImp.id;
+		b.auctionId = buildAuctionId(b.AdCampaignBannerPreviewID);
+
+		// Start do bidding
+		doBid(b);
+	});
+}
+
+var doBid = function(banner) {
+	if (!banner) return false;
+
+	console.log("TRACK: DO BID!");
+	biddingQueue.push(banner);
+}
+

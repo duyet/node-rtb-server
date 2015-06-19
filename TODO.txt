@@ -1,0 +1,4 @@
+Filter as modules.
+Tracker Imp and click, save in Redis|MongoDB
+Fetch Banner List from Redis|MongoDB every xxx hours / or trigger from DB.
+Bannker, Budget, ... sync from MySQL DB
