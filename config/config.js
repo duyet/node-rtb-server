@@ -11,11 +11,12 @@ module.exports = {
 
 	sessionSecret: 'LvDuit',
 	sessionCollection: 'sessions',
-	tmpDir: 'tmp/',
+	tmpDir: '/tmp',
+	logDir: '/logs',
 	
 	routes : {
 		bids: '/bids',
-		imptracker: '/imptracker',
+		imp_tracker: '/imp_tracker',
 		click_tracker: '/click_tracker',
 		banner_render: '/banner_render',
 		banner_preview: '/banner_preview',

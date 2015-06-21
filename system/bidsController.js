@@ -20,6 +20,12 @@ var bidReq = {
 		"page" : "",
 		"publisher" : {}
 	},
+	adzone: {
+		id: 0,
+		w: 0,
+		height: 0,
+		pos: 0,
+	},
 	user: {"id": ""},
 	device: {"ua": "", "ip": ""},
 	at: 0,
@@ -76,6 +82,13 @@ exports.bids = function(req, res) {
 		bidReq.site.cat = req.body.site.cat || bidReq.site.cat;
 		bidReq.site.page = req.body.site.page || bidReq.site.page;
 		if (req.body.site.publisher) bidReq.site.publisher = req.body.site.publisher;
+	}
+
+
+	// Local bidding require Adzone info 
+	if (req.body.adzone) bidReq.adzone = req.body.adzone;
+	if (!bidReq.adzone || !bidReq.adzone.id) {
+		return res.status(500).json("ERR: Missing Adzone info.");
 	}
 
 	// Bid Timeout 

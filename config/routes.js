@@ -19,7 +19,7 @@ module.exports = function(app) {
 		.post(bids.bids);
 
 	// Imp tracker
-	app.route(routePath.imptracker)
+	app.route(routePath.imp_tracker)
 		.get(impTracker.tracker);
 
 	// Click tracker

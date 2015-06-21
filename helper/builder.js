@@ -43,6 +43,7 @@ exports.WinBidUrl = function(bidReq, bid_res) {
 	url += '&cid=' + bid_res.AdCampaignBannerPreviewID;
 	url += '&type=win';
 	url += '&impId=' + bid_res.impId;
+	url += '&PublisherAdZoneID=' + bidReq.adzone.id || 0;
 	url += '&auctionId=' + bid_res.auctionId;
 	url += '&site=' + bidReq.site.page;
 	url += '&data=OuJifVtEK&price=${AUCTION_PRICE}';
@@ -58,6 +59,7 @@ exports.ClickTrackerUrl = function(banner, reqInfo) {
 	url += config.domain + ':' + config.port + '' + route.click_tracker;
 	url += '?pid='+ exports.genHash(String(banner.AdCampaignBannerPreviewID));//bcrypt.hashSync(String(bid_res.AdCampaignBannerPreviewID), bid_res.bgateSalt);
 	url += '&cid=' + banner.AdCampaignBannerPreviewID;
+	url += '&PublisherAdZoneID=' + reqInfo.PublisherAdZoneID || 0;
 	url += '&type=click_tracker';
 	url += '&impId=' + reqInfo.impId || '';
 	url += '&auctionId=' + reqInfo.auctionId || '';
@@ -69,6 +71,22 @@ exports.ClickTrackerUrl = function(banner, reqInfo) {
 
 	console.timeEnd("TIMER: Build Click Tracker URL")
 
+	return url;
+}
+
+exports.ImpTrackerUrl = function(banner, PublisherAdZoneID) {
+	console.time("TIMER: Build Imp Tracker URL");
+	if (!banner.LandingPageTLD) return '';
+
+	var url = '';
+	url += config.domain + ':' + config.port + '' + route.imp_tracker;
+	url += '?pid='+ exports.genHash(String(banner.AdCampaignBannerPreviewID));//bcrypt.hashSync(String(bid_res.AdCampaignBannerPreviewID), bid_res.bgateSalt);
+	url += '&PublisherAdZoneID=' + PublisherAdZoneID;
+	url += '&AdCampaignBannerID=' + banner.AdCampaignBannerPreviewID;
+	url += '&type=imp_tracker';
+	//url += '&impId=' + banner.impId || '';
+	
+	console.timeEnd("TIMER: Build Imp Tracker URL");
 	return url;
 }
 
@@ -87,11 +105,13 @@ exports.AuctionId = function(bannerId) {
 
 exports.BannerRenderLink = function(bidReq, bid_res) {
 	if (!bidReq || !bid_res) return '';
-	console.log(route);
 
+	console.error("I got -----------> ", bidReq, '------------->' , bid_res);
+	
 	var url = config.domain + ':' + config.port + '' + route.banner_render;
 	url += '?type=banner';
 	url += '&bidId=' + bidReq.id || 'none';
+	url += '&PublisherAdZoneID=' + bidReq.adzone.id || 0; 
 	url += '&bannerId=' + bid_res.AdCampaignBannerPreviewID || 0;
 	url += '&width=' + bid_res.Width || 0;
 	url += '&height=' + bid_res.Height || 0;

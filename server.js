@@ -3,6 +3,10 @@
 /**
  * Module dependencies.
  */
+
+// PMX for HTTP Analysic
+require('pmx').init();
+
 var fs = require('fs'),
 	http = require('http'),
 	express = require('express'),
@@ -11,11 +15,12 @@ var fs = require('fs'),
 	session = require('express-session'),
 	sessionStore = require('express-mysql-session'),
 	expressValidator = require('express-validator'),
-	compress = require('compression'),
 	methodOverride = require('method-override'),
 	cookieParser = require('cookie-parser'),
 	helmet = require('helmet'),
+	cors = require('cors'),
 	flash = require('connect-flash'),
+	FileStreamRotator = require('file-stream-rotator'),
 	config = require('./config/config'),
 	compression = require('compression'),
 	multipart = require('connect-multiparty'),
@@ -38,14 +43,32 @@ var fs = require('fs'),
 
 	app.set('view engine', 'jade');
 
-	// Environment dependent middleware
-	if (process.env.NODE_ENV === 'development') {
-		// Enable logger (morgan)
-		app.use(morgan('dev'));
+	// https://en.wikipedia.org/wiki/Cross-origin_resource_sharing
+	app.use(cors());
 
+	// -----------------------------------
+	// Log 
+	// -----------------------------------
+	var logDir = __dirname + config.logDir;
+	// ensure log directory exists
+	fs.existsSync(logDir) || fs.mkdirSync(logDir);
+
+	// create a rotating write stream
+	var accessLogStream = FileStreamRotator.getStream({
+		filename: logDir + '/access/access-%DATE%.log',
+		frequency: 'daily',
+		verbose: false,
+		date_format: "YYYY-MM-DD"
+	})
+	// setup the logger
+	app.use(morgan('combined', {stream: accessLogStream}))
+
+
+	// Environment dependent middleware
+	if (config.debug) {
 		// Disable views cache
 		app.set('view cache', false);
-	} else if (process.env.NODE_ENV === 'production') {
+	} else {
 		app.locals.cache = 'memory';
 	}
 
@@ -55,7 +78,7 @@ var fs = require('fs'),
 	}));
 	
 	app.use(bodyParser.json());
-	app.use(compression()); //use compression 
+	app.use(compression({level: 9})); //use compression 
 	app.use(methodOverride());
 	
 	app.use(expressValidator({
@@ -88,6 +111,7 @@ var fs = require('fs'),
 	});
 	*/
 
+	
 	app.use(function(req, res, next) {
 	   res.header("Access-Control-Allow-Origin", "*");
 	   res.header('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,OPTIONS');
@@ -101,8 +125,7 @@ var fs = require('fs'),
 	    return next();
 	  }
 	});
-
-
+	
 
 	// Assume 'not found' in the error msgs is a 404. this is somewhat silly, but valid, you can do whatever you like, set properties, use instanceof etc.
 	app.use(function(err, req, res, next) {

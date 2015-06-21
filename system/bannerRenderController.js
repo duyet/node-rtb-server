@@ -3,41 +3,63 @@
 var BGateAgent = require('../helper/BgateAgent.js');
 var builder = require('../helper/builder.js');
 
-exports.render = function(req, res) {
-	console.log("============================================================");
-	console.log("Ad banner render");
+exports.render = function(req, res, next) {
+	console.log("=================== AD BANNER RENDER ===================");
 	
-	if (!req.query) return res.status(404).send(404);
-	if (!BGateAgent || !BGateAgent.agents) return res.status(404).send(404);
+	if (!req.query) {
+		console.error("ERR: Missing query param.");
+		return res.status(404).send();
+	}
+	if (!BGateAgent || !BGateAgent.agents) {
+		console.error("ERR: Missing BGateAgent or error.");
+		return res.status(404).send();
+	}
 	
+	var PublisherAdZoneID = req.query.PublisherAdZoneID || 0;
 	var bannerId = req.query.bannerId || 0;
 	var bidId = req.query.bidId || 0;
 	var type = req.query.type || '';
 	var width = req.query.width || 0;
 	var height = req.query.height || 0;
 
-	if (!bannerId) return res.status(404).send();
-	
+	if (!bannerId) {
+		console.error("ERR: Missing bannerId.");
+		return res.status(404).send();
+	}
+	if (!PublisherAdZoneID) {
+		console.error("ERR: Missing PublisherAdZoneID.");
+		return res.status(404).send();
+	}
+
+	var finishLoop = false;
+	var isRendered = false;
 	BGateAgent.agents.forEach(function(agent) {
 		if (agent && agent.banner) {
 			agent.banner.forEach(function(banner) {
+				if (finishLoop) return true;
 				if (banner && banner.AdCampaignBannerPreviewID == bannerId) {
 					if (banner.Width != width || banner.Height != height) return res.status(404).send(404);
 					//console.log(banner);
+
+					finishLoop = true;
+					isRendered = true;
+					// res.header("Content-Type", "text/html");
 					return res.send(renderAdContent(banner, null, req.query));
 				}
 			})
 		}
 	});
 	
-	return res.status(404).send(404);
+	// if (!isRendered) return res.status(404).send(404);
+	next();
 };
 
 var renderAdContent = function(banner, trackerLink, reqInfo) {
 	if (!banner) return '';
-
-	console.error(reqInfo);
 	
+	var PublisherAdZoneID = parseInt(reqInfo.PublisherAdZoneID) || 0;
+	var impTrackerLink = builder.ImpTrackerUrl(banner, PublisherAdZoneID);
+
 	var trackerLink = trackerLink || builder.ClickTrackerUrl(banner, reqInfo);
 
 	var ad = '<!doctype html>\
@@ -47,6 +69,7 @@ var renderAdContent = function(banner, trackerLink, reqInfo) {
 		</head>\
 		<body>\
 		<!-- px tracker -->\
+		<img src="'+ impTrackerLink +'" width="0" height="0" style="display:none" />\
 		<div style="position:relative;width:'+ banner.Width +'px;height:'+ banner.Height +'px;">\
 		<a href="'+ trackerLink +'" target=\"_top\"><img src="'+ banner.AdUrl +'" width="'+ banner.Width +'" height="'+ banner.Height +'" /></a>\
 		<a href="#" class="bgateAdmLogo"><span></span></a>\
