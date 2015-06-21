@@ -1,6 +1,7 @@
 'use strict';
 
 var config = require('../config/config');
+var route = config.routes;
 
 exports.AdmTag = function(bidReq, bid_res) {
 	console.time("TIMER: Build Adm Tag");
@@ -27,10 +28,7 @@ exports.AdmTag = function(bidReq, bid_res) {
 
 	// USING STRING CONCAT, It's save my life
 	var admTag = "";
-	admTag += "<iframe src=\"" + exports.BannerRenderLink(bidReq, bid_res) + "\" border=\"0\" width=\"" + bid_res.Width + "\" height=\"" + bid_res.Height + "\">";
-	admTag += "<a href=\""+ exports.ClickTrackerUrl(bidReq, bid_res) +"\">";
-	admTag += "<img src=\"" + bid_res.AdUrl + "\" />";
-	admTag += "</a>";
+	admTag += "<iframe src=\"" + exports.BannerRenderLink(bidReq, bid_res) + "\" border=\"0\" width=\"" + bid_res.Width + "\" height=\"" + bid_res.Height + "\" style=\"margin:0;padding:0;border:0\" scrolling=\"no\" seamless=\"seamless\">";
 	admTag += "</iframe>";
 	
 	console.timeEnd("TIMER: Build Adm Tag");
@@ -40,7 +38,7 @@ exports.AdmTag = function(bidReq, bid_res) {
 
 exports.WinBidUrl = function(bidReq, bid_res) {
 	var url = '';
-	url += config.domain + ':' + config.port + '/' + config.winPath;
+	url += config.domain + ':' + config.port + '' + route.win;
 	url += '?pid='+ exports.genHash(String(bid_res.AdCampaignBannerPreviewID)); //bcrypt.hashSync(String(bid_res.AdCampaignBannerPreviewID), bid_res.bgateSalt);
 	url += '&cid=' + bid_res.AdCampaignBannerPreviewID;
 	url += '&type=win';
@@ -52,17 +50,22 @@ exports.WinBidUrl = function(bidReq, bid_res) {
 	return url;
 }
 
-exports.ClickTrackerUrl = function(bidReq, bid_res) {
+exports.ClickTrackerUrl = function(banner, reqInfo) {
 	console.time("TIMER: Build Click Tracker URL");
+	if (!banner.LandingPageTLD) return '';
+
 	var url = '';
-	url += config.domain + ':' + config.port + '/' + config.winPath;
-	url += '?pid='+ exports.genHash(String(bid_res.AdCampaignBannerPreviewID));//bcrypt.hashSync(String(bid_res.AdCampaignBannerPreviewID), bid_res.bgateSalt);
-	url += '&cid=' + bid_res.AdCampaignBannerPreviewID;
+	url += config.domain + ':' + config.port + '' + route.click_tracker;
+	url += '?pid='+ exports.genHash(String(banner.AdCampaignBannerPreviewID));//bcrypt.hashSync(String(bid_res.AdCampaignBannerPreviewID), bid_res.bgateSalt);
+	url += '&cid=' + banner.AdCampaignBannerPreviewID;
 	url += '&type=click_tracker';
-	url += '&impId=' + bid_res.impId || '';
-	url += '&auctionId=' + bid_res.auctionId || '';
-	url += '&site=' + bidReq.site.page || '';
-	url += '&data=OuJifVtEK&price=${AUCTION_PRICE}';
+	url += '&impId=' + reqInfo.impId || '';
+	url += '&auctionId=' + reqInfo.auctionId || '';
+	url += '&page=' + reqInfo.page || '';
+	url += '&width=' + reqInfo.width || 0;
+	url += '&height=' + reqInfo.height || 0;
+	url += '&LandingPageTLD=' + banner.LandingPageTLD || '';
+	url += '&js=' + (reqInfo.js && reqInfo.js != 'true' ? 'false' : 'true');
 
 	console.timeEnd("TIMER: Build Click Tracker URL")
 
@@ -76,7 +79,7 @@ exports.genHash = function(string) {
 }
 
 exports.AuctionId = function(bannerId) {
-	var id = exports.genHash(String(bannerId) + "/" + String(new Date())); // bcrypt.hashSync(String(bannerId) + "/" + String(moment()), bcrypt.genSaltSync(10))
+	var id = exports.genHash(String(bannerId) + "" + String(new Date())); // bcrypt.hashSync(String(bannerId) + "/" + String(moment()), bcrypt.genSaltSync(10))
 	// TODO: Save auctionId to db
 
 	return id;
@@ -84,16 +87,33 @@ exports.AuctionId = function(bannerId) {
 
 exports.BannerRenderLink = function(bidReq, bid_res) {
 	if (!bidReq || !bid_res) return '';
+	console.log(route);
 
-	var url = '';
-	url += config.domain + ':' + config.port + '/' + config.bannerRenderPath;
+	var url = config.domain + ':' + config.port + '' + route.banner_render;
 	url += '?type=banner';
 	url += '&bidId=' + bidReq.id || 'none';
 	url += '&bannerId=' + bid_res.AdCampaignBannerPreviewID || 0;
 	url += '&width=' + bid_res.Width || 0;
 	url += '&height=' + bid_res.Height || 0;
 	url += '&name=' + bid_res.Name || '';
+	url += '&link_type=render';
+	url += '&js=true';
 	//url += '&i=' + bid_res.AdUrl || '';
+
+	return url;
+}
+
+exports.BannerPreviewLink = function(banner) {
+	if (!banner) return '';
+
+	var url = config.domain + ':' + config.port + '' + '/banner_preview'; //route.banner_preview;
+	url += '?type=preview&uname=bgate';
+	url += '&Width=' + banner.Width || 0;
+	url += '&Height=' + banner.Height || 0;
+	url += '&AdUrl=' + banner.AdUrl;
+	url += '&banner_type=img';
+	url += '&link_type=preview';
+	url += '&js=true';
 
 	return url;
 }

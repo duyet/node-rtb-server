@@ -47,6 +47,11 @@ var passSelfBannerFilter = function(banner) {
 	return true;
 }
 
+var initBannerAttributes = function(banner) {
+	// TODO: All attributes for banner, ex: todayImp, totalImp, clickCounter, ...
+	return banner;
+}
+
 var BGateAgent = {
 	agents : [],
 	listBanner : [],
@@ -76,6 +81,9 @@ var BGateAgent = {
 							banner = banner.attributes;
 							// Filter me 
 							if (!passSelfBannerFilter(banner)) return;
+							
+							initBannerAttributes(banner);
+
 							user.banner.push(banner);
 
 							//BGateAgent.listBanner.push(banner);

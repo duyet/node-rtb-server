@@ -92,21 +92,17 @@ var fs = require('fs'),
 	   res.header("Access-Control-Allow-Origin", "*");
 	   res.header('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,OPTIONS');
 	   res.header("Access-Control-Allow-Headers", "x-openrtb-version,Content-Type,*");
+	   res.header("X-Frame-Options", "ALLOWALL");
 	   if (req.method === 'OPTIONS') {
-	   
-	    res.statusCode = 204;
-	    return res.end();
+	   		console.log("INFO: Browser send OPTIONS request.");
+			res.statusCode = 204;
+			return res.end();
 	  } else {
 	    return next();
 	  }
 	});
 
-	require("./config/routes.js")(app);
 
-	// Assume 404 since no middleware responded
-	app.use(function(req, res) {
-		res.status(404).send({"CODE":400, "ERR":1, "MESSAGE":"Not found."});
-	});
 
 	// Assume 'not found' in the error msgs is a 404. this is somewhat silly, but valid, you can do whatever you like, set properties, use instanceof etc.
 	app.use(function(err, req, res, next) {
@@ -119,6 +115,13 @@ var fs = require('fs'),
 		// Error page
 
 		res.status(500).send({"CODE":500,"ERR":1, "MESSAGE": err.stack});
+	});
+
+	require("./config/routes.js")(app);
+
+	// Assume 404 since no middleware responded
+	app.use(function(req, res) {
+		res.status(404).send({"CODE":400, "ERR":1, "MESSAGE":"Not found."});
 	});
 
 

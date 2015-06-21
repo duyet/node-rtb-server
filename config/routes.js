@@ -1,6 +1,7 @@
 'use strict';
 
-var config = require('./config.js');
+var config = require('./config');
+var routePath = config.routes;
 
 module.exports = function(app) {
 	var bids = require('../system/bidsController.js');
@@ -12,22 +13,39 @@ module.exports = function(app) {
 
 	app.route('/').get(function(req, res) { res.send("Hi, bye!"); });
 	
-	app.route('/' + config.bidsPath)
+	// Bidding end point 
+	app.route(routePath.bids)
 		.get(bids.index)
 		.post(bids.bids);
 
-	app.route('/' + config.impTrackerPath)
+	// Imp tracker
+	app.route(routePath.imptracker)
 		.get(impTracker.tracker);
 
-	app.route('/' + config.clickTrackerPath)
+	// Click tracker
+	app.route(routePath.click_tracker)
 		.get(clickTracker.tracker);
 
-	app.route('/' + config.bannerRenderPath)
+	// Banner render
+	app.route(routePath.banner_render)
 		.get(bannerRender.render);
 
-	app.route('/ping')
+	// Banner preview
+	app.route(routePath.banner_preview)
+		.get(bannerRender.preview);
+	app.route(routePath.banner_generate_preview_link)
+		.all(bannerRender.generate_preview_link);
+
+	app.route(routePath.ping)
 		.all(ping.pingme);
 
-	app.route('/bidrequest')
+	app.route(routePath.bidrequest)
 		.get(bidrequest.generate);
+
+	if (config.debug) {
+		var debugController = require('../system/debugController.js');
+		app.route('/debug').get(debugController.main);
+		app.route('/debug/agent').get(debugController.agent);
+		app.route('/debug/banner').get(debugController.banner);
+	}
 };

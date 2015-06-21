@@ -1,13 +1,9 @@
 'use strict';
 
 var moment = require('moment');
-//var openrtb = require('../lib/openrtb');
 var _ = require('lodash');
-
 var config = require('../config/config');
-
 var Model = require('../config/db').Model;
-
 var build = require('../helper/builder');
 
 // ==================================
