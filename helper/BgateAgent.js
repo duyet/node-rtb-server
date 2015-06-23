@@ -97,7 +97,7 @@ var BGateAgent = {
 
 			});
 		}).then(function() {
-			next();	
+			if (next) next();	
 		});
 	},
 

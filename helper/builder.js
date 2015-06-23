@@ -43,7 +43,7 @@ exports.WinBidUrl = function(bidReq, bid_res) {
 	url += '&cid=' + bid_res.AdCampaignBannerPreviewID;
 	url += '&type=win';
 	url += '&impId=' + bid_res.impId;
-	url += '&PublisherAdZoneID=' + bidReq.adzone.id || 0;
+	url += '&PublisherAdZoneID=' + bid_res.id || 0;
 	url += '&auctionId=' + bid_res.auctionId;
 	url += '&site=' + bidReq.site.page;
 	url += '&data=OuJifVtEK&price=${AUCTION_PRICE}';
@@ -106,12 +106,12 @@ exports.AuctionId = function(bannerId) {
 exports.BannerRenderLink = function(bidReq, bid_res) {
 	if (!bidReq || !bid_res) return '';
 
-	console.error("I got -----------> ", bidReq, '------------->' , bid_res);
+//	console.error("I got -----------> ", bidReq, '------------->' , bid_res);
 	
 	var url = config.domain + ':' + config.port + '' + route.banner_render;
 	url += '?type=banner';
 	url += '&bidId=' + bidReq.id || 'none';
-	url += '&PublisherAdZoneID=' + bidReq.adzone.id || 0; 
+	url += '&PublisherAdZoneID=' + bidReq.id || 0; 
 	url += '&bannerId=' + bid_res.AdCampaignBannerPreviewID || 0;
 	url += '&width=' + bid_res.Width || 0;
 	url += '&height=' + bid_res.Height || 0;

@@ -4,15 +4,21 @@ var config = require('./config');
 var routePath = config.routes;
 
 module.exports = function(app) {
+	var man = require('../system/manController.js');
 	var bids = require('../system/bidsController.js');
 	var bidrequest = require('../system/bidrequestController.js');
 	var impTracker = require('../system/impTrackerController.js');
 	var clickTracker = require('../system/clickTrackerController.js');
 	var bannerRender = require('../system/bannerRenderController.js');
 	var ping = require('../system/pingController.js');
+	var triggerSystem = require('../system/triggerController.js');
 
-	app.route('/').get(function(req, res) { res.send("Hi, bye!"); });
+	app.route('/').get(function(req, res) { res.send("Hi, what's up?"); });
 	
+	// Manual page 
+	app.route(routePath.man)
+		.get(man.index);
+
 	// Bidding end point 
 	app.route(routePath.bids)
 		.get(bids.index)
@@ -41,6 +47,21 @@ module.exports = function(app) {
 
 	app.route(routePath.bidrequest)
 		.get(bidrequest.generate);
+
+	// =======================================
+	// TRIGGER
+	// =======================================
+	// Reset Agent
+	app.route(routePath.trigger_reset_agent)
+		.get(triggerSystem.trigger_reset_agent);
+	
+	// Reset Publisher
+	app.route(routePath.trigger_reset_publisher)
+		.get(triggerSystem.trigger_reset_publisher);
+	
+	// Reset All
+	app.route(routePath.trigger_reset_all)
+		.get(triggerSystem.trigger_reset_all);
 
 	if (config.debug) {
 		var debugController = require('../system/debugController.js');
