@@ -76,9 +76,11 @@ var BGateAgent = {
 					if (!user) return false;
 					user.banner = [];
 
-					new AdCampaignBannerPreview({UserID: user.UserID}).fetchAll().then(function(collection) {
-						collection.forEach(function(banner) {
-							banner = banner.attributes;
+					new AdCampaignBannerPreview({UserID: user.user_id}).fetch().then(function(banner) {
+						//collection.forEach(function(banner) {
+							if (banner) banner = banner.attributes;
+
+							//banner = banner.attributes;
 							// Filter me 
 							if (!passSelfBannerFilter(banner)) return;
 							
@@ -87,7 +89,7 @@ var BGateAgent = {
 							user.banner.push(banner);
 
 							//BGateAgent.listBanner.push(banner);
-						});
+						//});
 
 						//console.log(_.merge(user, demandUser));
 						BGateAgent.agents.push(_.merge(user, demandUser));
@@ -107,7 +109,11 @@ var BGateAgent = {
 };
 
 BGateAgent.init(function() {
-	console.log(BGateAgent.agents);
+	if (1 == 2) {
+		setTimeout(function() {
+			require('fs').writeFile("bgate_agent.txt", JSON.stringify(BGateAgent.agents, null, 4), null);
+		}, 2000);
+	}
 });
 
 module.exports = BGateAgent;
