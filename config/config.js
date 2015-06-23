@@ -1,6 +1,7 @@
 'use stricts';
 
 exports.db = require('./db.js');
+exports.mongo = require('./mongodb.js');
 exports.global = require('./global.js');
 
 module.exports = {
