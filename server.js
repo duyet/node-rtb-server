@@ -19,7 +19,7 @@ var fs = require('fs'),
 	cookieParser = require('cookie-parser'),
 	helmet = require('helmet'),
 	cors = require('cors'),
-	flash = require('connect-flash'),
+	//flash = require('connect-flash'),
 	FileStreamRotator = require('file-stream-rotator'),
 	config = require('./config/config'),
 	compression = require('compression'),
@@ -91,7 +91,7 @@ var fs = require('fs'),
 	app.use(cookieParser());
 
 	// connect flash for flash messages
-	app.use(flash());
+	//app.use(flash());
 
 	// Use helmet to secure Express headers
 	app.use(helmet.xframe());
@@ -144,7 +144,8 @@ var fs = require('fs'),
 
 	// Assume 404 since no middleware responded
 	app.use(function(req, res) {
-		res.status(404).send({"CODE":400, "ERR":1, "MESSAGE":"Not found."});
+		console.log("ERR: 404 not found.");
+		res.status(404).send({"CODE":404, "ERR":1, "MESSAGE":"Not found."});
 	});
 
 
