@@ -51,7 +51,7 @@ exports.render = function(req, res, next) {
 	});
 	
 	// if (!isRendered) return res.status(404).send(404);
-	next();
+	// next();
 };
 
 var renderAdContent = function(banner, trackerLink, reqInfo) {
@@ -65,7 +65,7 @@ var renderAdContent = function(banner, trackerLink, reqInfo) {
 	var ad = '<!doctype html>\
 		<html>\
 		<head><title>Bgate by ISLab</title>\
-		<style>* {margin:0; padding:0} .bgateAdmLogo {background: url(//3.bp.blogspot.com/-FWZ8ppmaUpk/VYQ9Oe6h6OI/AAAAAAAACjU/qyGoayEtu58/s1600/adxlogo-2.png) no-repeat top left;display: block;width: 35px;height: 20px;z-index: 999;position: absolute;top: 0px;right: 0px;} .bgateAdmLogo:hover {  width: 103px; background: url(//2.bp.blogspot.com/-Aq6P-ulojEE/VYQ9OBptyGI/AAAAAAAACjQ/6CU-UonIo-Q/s1600/adxlogo-2-hover.png) no-repeat top left;}</style>\
+		<style>* {margin:0; padding:0} .bgateAdmLogo {background: url(//3.bp.blogspot.com/-FWZ8ppmaUpk/VYQ9Oe6h6OI/AAAAAAAACjU/qyGoayEtu58/s1600/adxlogo-2.png) no-repeat top left;display: block;width: 35px;height: 20px;z-index: 999;position: absolute;top: 0px;right: 0px;} .bgateAdmLogo:hover {  width: 103px; background: url(//3.bp.blogspot.com/-r87fGsSXmWA/VYfab3YV-0I/AAAAAAAACjs/hn-ylyS1Kzk/s1600/adxlogo-2-hover.png) no-repeat top left;}</style>\
 		</head>\
 		<body>\
 		<!-- px tracker -->\

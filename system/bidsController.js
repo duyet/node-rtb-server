@@ -20,12 +20,6 @@ var bidReq = {
 		"page" : "",
 		"publisher" : {}
 	},
-	adzone: {
-		id: 0,
-		w: 0,
-		height: 0,
-		pos: 0,
-	},
 	user: {"id": ""},
 	device: {"ua": "", "ip": ""},
 	at: 0,
@@ -33,17 +27,18 @@ var bidReq = {
 };
 
 var bidTimeout = 1;
-var biddingQueue = [];
 var isBidTimeout = false;
 
 // ==================================
 // LOAD ALL BANNER TO CACHE
 // ==================================
 var BGateAgent = require('../helper/BgateAgent.js');
-
+var Publisher = require('../helper/Publisher.js');
 
 exports.index = function(req, res) {
-	res.jsonp(BGateAgent.agents);
+	console.log("Send: ", "ERR: POST method only.");
+	res.send("ERR: POST method only.");
+	//res.jsonp(BGateAgent.agents);
 	//res.send("Hello!!");
 };
 
@@ -52,6 +47,9 @@ exports.index = function(req, res) {
 // ==================================
 exports.bids = function(req, res) {
 	isBidTimeout = false;
+
+	// Reset bidding queue
+	var biddingQueue = [];
 
 	console.info("============================================================");
 	console.info("============================================================");
@@ -84,18 +82,20 @@ exports.bids = function(req, res) {
 		if (req.body.site.publisher) bidReq.site.publisher = req.body.site.publisher;
 	}
 
-
 	// Local bidding require Adzone info 
-	if (req.body.adzone) bidReq.adzone = req.body.adzone;
-	if (!bidReq.adzone || !bidReq.adzone.id) {
-		return res.status(500).json("ERR: Missing Adzone info.");
-	}
+	//if (req.body.adzone) bidReq.adzone = req.body.adzone;
+	//if (!bidReq.adzone || !bidReq.adzone.id) {
+	//	return res.status(500).json("ERR: Missing Adzone info.");
+	//}
 
 	// Bid Timeout 
 	if (req.body.tmax && req.body.tmax > 0) bidReq.tmax = bidTimeout = req.body.tmax;
 
 	var results = [];
+	var isBreak = false; var isError = false;
 	req.body.imp.forEach(function(i) {
+		if (isBreak == true) return false;
+
 		// ==================================
 		// GOT BANNER FROM REQUEST
 		// ==================================
@@ -117,6 +117,13 @@ exports.bids = function(req, res) {
 		};
 		newImp.bidfloor = i.bidfloor || 0.0; // bidfloor is float (USD)
 
+		// Check adzone 
+		if (!checkAdzoneId(newImp.id)) {
+			console.error("ERR: Adzone not exists!");
+			isBreak = true; isError = true;
+			//res.status(400).send();
+		}
+
 		console.log("========= REQUEST BANNER =========");
 		console.log(newImp);
 		console.log("==================================");
@@ -133,7 +140,7 @@ exports.bids = function(req, res) {
 			return banner.Width == newImp.banner.width && banner.Height == newImp.banner.height && banner.BidAmount >= newImp.bidfloor;
 		}), 'Width,Height');*/
 
-		_.map(BGateAgent.agents, _.curry(bid)(newImp));
+		_.map(BGateAgent.agents, _.curry(bid)(newImp, biddingQueue));
 
 		console.log("Find banner with: width = " + newImp.banner.width + ", height = " + newImp.banner.height + ", bidfloor = " + newImp.bidfloor)
 		
@@ -164,6 +171,10 @@ exports.bids = function(req, res) {
 	// ==================================
 	console.time("TIMER: BIDDNG ...");
 	var biddingTimeout = setTimeout(function() {
+		//if (isError == true) {
+		//	console.log("ERR: In error, empty response.");
+		//	return false;
+		//}
 		// Choose win bidding
 		//console.log("biddingQueue", biddingQueue);
 
@@ -171,7 +182,19 @@ exports.bids = function(req, res) {
 		// WHO'S WIN?
 		// ==================================
 		if (!biddingQueue) return generateEmptyResponse(res);
-		var results = [biddingQueue[0]];
+
+
+
+		// console.log("##################", biddingQueue);
+		var choosen = _.sortByOrder(
+			biddingQueue, 
+			['BidAmount'],
+			[false]
+		);
+
+		var results = [choosen[0]];
+
+		// console.log("BID RES:", results);
 
 		// ==================================
 		// GENERATE RESPONSE 
@@ -189,7 +212,6 @@ var generateEmptyResponse = function(res) {
 	isBidTimeout = true; // Generate response, also mean timeout for bidding
 	console.log('TRACK: No response.');
 	console.info("============================================================");
-	console.info("============================================================");
 	return res.status(204).send();
 }
 
@@ -204,7 +226,10 @@ var generateBidResponse = function(res, bidReq, bidRes) {
 
 	//console.log("Bid response data: ", bidRes);
 
-	if (!bidRes.length) return generateEmptyResponse(res);
+	if (!bidRes.length) {
+		console.log("INFO: Generate empty response.");
+		return generateEmptyResponse(res);
+	}
 
 	// TODO: Support multi bidding
 	var bid_res = bidRes[0] || false;
@@ -266,41 +291,9 @@ var generateBidResponse = function(res, bidReq, bidRes) {
 		}
 	];
 
+	res.json(bidResponse);
 	console.log("SEND BIDDING RESPONSE!!");
 	console.info("============================================================");
-	console.info("============================================================\n\n");
-
-    res.jsonp(bidResponse);
-
-	/*
-    builder
-    .timestamp(moment.utc().format())
-	.status(1)
-    .bidderName('bgate')
-    .seatbid([
-        {
-            bid: [
-                {
-					status: 1,
-					adid: bid_res.AdCampaignBannerPreviewID || 0,
-					id: bcrypt.hashSync(String(bid_res.AdCampaignBannerPreviewID), bid_res.bgateSalt),
-					impid: bid_res.impId,
-					price: bid_res.BidAmount || 0,
-					nurl: build.WinBidUrl(bidReq, bid_res), // Win Notice
-					adm: build.AdmTag(bid_res), // Ad tag
-					cid: bid_res.impId,
-					crid: bid_res.impId,
-					iurl: bid_res.AdUrl, // Image URL
-					adomain: [bid_res.LandingPageTLD || ""]
-                } 
-            ]
-        }
-    ])
-    .build()
-    .then(function(bidResponse){
-    	
-    });
-	*/
 
     console.timeEnd("TIMER: Generate Bid Response")
 }
@@ -308,12 +301,31 @@ var generateBidResponse = function(res, bidReq, bidRes) {
 var filterBannerResult = function(winBanners) {
 	if (!winBanners) return [];
 
-	// More filter here
+	// TODO: More filter here
 
 	return winBanners[0];
+};
+
+var checkAdzoneId = function(adzoneId) {
+	if (!Publisher || !Publisher.data) return false;
+
+	var isBreak = false;
+	var result = false;
+	Publisher.data.forEach(function(pub) {
+		if (isBreak) return false;
+
+		if (pub.PublisherAdZoneID == adzoneId) {
+			result = true;
+			isBreak = true;
+		}
+	});
+
+	return result;
 }
 
-var bid = function(newImp, agent) {
+var bid = function(newImp, biddingQueue, agent) {
+	console.log("TRACK: Run Agent ", agent.user_email);
+
 	if (isBidTimeout) return false; // Bidding timeout
 	if (!agent || !newImp) return false;
 	if (!agent.banner) return false;
@@ -333,14 +345,16 @@ var bid = function(newImp, agent) {
 		banner.impId = newImp.id;
 		banner.auctionId = build.AuctionId(banner.AdCampaignBannerPreviewID);
 
+		console.log("TRACK: DO BID BANNER ", banner.AdCampaignBannerPreviewID, " of agent: ", agent.user_email);
+
 		// Start do bidding
-		doBid(banner);
+		doBid(banner, biddingQueue);
 	});
 }
 
-var doBid = function(banner) {
+var doBid = function(banner, biddingQueue) {
 	if (!banner) return false;
 
-	console.log("TRACK: DO BID!");
+	// console.log("BID BANNER: ", banner);
 	biddingQueue.push(banner);
 }

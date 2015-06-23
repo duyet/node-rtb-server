@@ -13,8 +13,14 @@ module.exports = {
 	sessionCollection: 'sessions',
 	tmpDir: '/tmp',
 	logDir: '/logs',
+
+	trigger_token: '73a90acaae2b1ccc0e969709665bc62f',
+	trigger_key: 'lvduit',
 	
 	routes : {
+		// Manual for API REST
+		man: '/man',
+
 		bids: '/bids',
 		imp_tracker: '/imp_tracker',
 		click_tracker: '/click_tracker',
@@ -25,7 +31,15 @@ module.exports = {
 		bidrequest: '/bidrequest',
 		win: '/win',
 		config_agent: '/config_agent',
-		config_banner: '/config_banner'
+		config_banner: '/config_banner',
+
+		// Trigger refresh
+		trigger_reset_agent: '/trigger/refresh/agent',
+		trigger_reset_publisher: '/trigger/refresh/publisher',
+		trigger_reset_all: '/trigger/refresh/all',
+
+		// Trigger get agent
+
 	}
 }
 

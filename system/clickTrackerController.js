@@ -14,8 +14,6 @@ module.exports.tracker = function(req, res) {
 	if (!req.query) return res.status(404).send(404);
 	if (!BGateAgent || !BGateAgent.agents) return res.status(404).send();
 
-	// TODO: update CLICK event to DB or Agent
-
 	// Creative ID
 	var cid = parseInt(req.query.cid) || 0;
 	if (!cid || cid == 0) {
@@ -36,6 +34,9 @@ module.exports.tracker = function(req, res) {
 	var regex = /^http\:\/\/.*/;
 	if (!regex.test(targetUrl)) targetUrl = 'http://' + targetUrl;
 
+	// TODO: update CLICK event to DB or Agent
+	
+	
 	console.info('INFO: Redirect to ' + targetUrl);
 	res.redirect(targetUrl);
 

@@ -12,6 +12,13 @@ var RawImp = Model.extend({
 	idAttribute: 'RawImpID'
 });
 
+var lastImp = {
+	PublisherAdZoneID: 0,
+	AdCampaignBannerID: 0, 
+	UserIP: '',
+	Country: '',
+};
+
 // TODO: Fix duplicate impTracker
 exports.tracker = function(req, res) {
 	tracker.use(function (error, result) {
@@ -25,13 +32,23 @@ exports.tracker = function(req, res) {
 	    	Price : result.Price || 0.0
 	    };
 
+		if (lastImp) {
+			if (lastImp.PublisherAdZoneID == data.PublisherAdZoneID 
+				&& lastImp.AdCampaignBannerID == data.AdCampaignBannerID 
+				&& lastImp.UserIP == data.UserIP 
+				&& lastImp.Country == data.Country)
+				return false;
+		}
+
+		lastImp = data;
+
 	    //console.error("Call meeeeeeeeeeeeeeeeeeeeeee");
 
 	    if (!data.PublisherAdZoneID || !data.AdCampaignBannerID) {
 	    	console.error("ERROR: ImpTracker missing AdCampaignBannerID OR PublisherAdZoneID");
 	    } else {
 	    	new RawImp(data).save().then(function(model) {
-	    		console.log("Saved ImpRaw id " + model.id);
+	    		console.log('[' + new Date() + "] Saved ImpRaw id " + model.id + '{'+ data.PublisherAdZoneID +', '+ data.UserIP +'}');
 	    		// console.error(model);
 	    	});
 	    }
