@@ -1,12 +1,21 @@
 'use stricts';
 
-exports.db = require('./db.js');
-exports.mongo = require('./mongodb.js');
+// exports.mongo = require('./mongodb.js');
 exports.global = require('./global.js');
+
+var config = {
+    host     : 'sv5.lvduit.com',
+    user     : 'root',
+    password : '',
+    database : 'bgate_demo',
+    charset  : 'utf8'
+};
 
 module.exports = {
 	domain: 'http://ptnhttt.uit.edu.vn',	
 	port: process.env.PORT || 8899,
+
+	db: config,
 	
 	debug: true,
 
@@ -40,8 +49,8 @@ module.exports = {
 		trigger_reset_publisher: '/trigger/refresh/publisher',
 		trigger_reset_all: '/trigger/refresh/all',
 
-		// Trigger get agent
-
+		// Sync
+		sync_banner: '/sync/banner',
 	}
 }
 

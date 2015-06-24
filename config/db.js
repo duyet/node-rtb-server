@@ -3,13 +3,7 @@
 var mysql = require('mysql');
 var Promise = require('bluebird');
 
-var config = {
-    host     : 'sv5.lvduit.com',
-    user     : 'root',
-    password : '',
-    database : 'bgate_demo',
-    charset  : 'utf8'
-};
+var config = require('./config').db;
 
 var knex = require('knex')({
   client: 'mysql',

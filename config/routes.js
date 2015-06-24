@@ -13,6 +13,7 @@ module.exports = function(app) {
 	var ping = require('../system/pingController.js');
 	var triggerSystem = require('../system/triggerController.js');
 	var manager = require('../system/managerController.js');
+	var sync = require('../system/syncController.js');
 
 	app.route('/').get(function(req, res) { res.send("Hi, what's up?"); });
 	
@@ -50,6 +51,8 @@ module.exports = function(app) {
 	// Manager agent 
 	app.route(routePath.manager_agent)
 		.get(manager.agent);
+	app.route(routePath.manager_agent + '/all')
+		.get(manager.agent_all);
 
 	// Manager banner
 	app.route(routePath.manager_banner)
@@ -69,6 +72,13 @@ module.exports = function(app) {
 	// Reset All
 	app.route(routePath.trigger_reset_all)
 		.get(triggerSystem.trigger_reset_all);
+
+	// ========================================
+	// SYNC
+	// ========================================
+	// Sync banenr 
+	app.route(routePath.sync_banner)
+		.get(sync.banner);
 
 	if (config.debug) {
 		var debugController = require('../system/debugController.js');
