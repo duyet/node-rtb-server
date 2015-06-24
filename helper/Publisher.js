@@ -1,8 +1,5 @@
 'use strict';
 
-var _ = require('lodash');
-var moment = require('moment');
-
 var config = require('../config/config');
 var Model = require('../config/db').Model;
 
@@ -20,8 +17,14 @@ var Publishers = {
 	data: [],
 
 	init: function(next) {
-		new PublisherAdZone({}).fetchAll().then(function(pub) {
-			Publishers.data.push(pub);
+		Publishers.data = [];
+		new PublisherAdZone().fetchAll().then(function(pub) {
+			if (pub) {
+				pub.forEach(function(p) {
+					Publishers.data.push(p.attributes);
+				})
+			}
+			
 		});
 		if (next) next();
 	}

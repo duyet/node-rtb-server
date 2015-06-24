@@ -47,7 +47,7 @@ exports.WinBidUrl = function(bidReq, bid_res) {
 	url += '&PublisherAdZoneID=' + bid_res.id || 0;
 	// url += '&auctionId=' + bid_res.auctionId;
 	url += '&site=' + bidReq.site.page;
-	url += '&data=OuJifVtEK&price=${AUCTION_PRICE}';
+	url += '&data=OuJifVtEK&price=${AUCTION_PRICE:BF}';
 
 	return url;
 }
@@ -127,6 +127,7 @@ exports.BannerRenderLink = function(bidReq, bid_res) {
 	url += '&name=' + bid_res.Name || '';
 	url += '&link_type=render';
 	url += '&js=true';
+	url += '&price=${AUCTION_PRICE:BF}';
 	//url += '&i=' + bid_res.AdUrl || '';
 
 	return url;

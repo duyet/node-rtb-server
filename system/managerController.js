@@ -21,6 +21,14 @@ exports.agent = function(req, res) {
 	res.json(agents);
 };
 
+exports.agent_all = function(req, res) {
+	if (!req.query || !req.query.s || req.query.s != config.trigger_token || !BGateAgent) {
+		return res.status(404).send("Not Found");
+	}
+
+	res.json(BGateAgent.agents);
+};
+
 exports.banner = function(req, res) {
 	if (!req.query || !req.query.s || req.query.s != config.trigger_token || !BGateAgent) {
 		return res.status(404).send("Not Found");
@@ -39,6 +47,7 @@ exports.banner = function(req, res) {
 				IABSize: current_banner.IABSize,
 				BidAmount: current_banner.BidAmount,
 				BidsCounter: current_banner.BidsCounter,
+				ImpressionsCounter: current_banner.ImpressionsCounter,
 				AdUrl: current_banner.AdUrl,
 			});
 		}

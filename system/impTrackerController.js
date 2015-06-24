@@ -3,6 +3,7 @@
 var Model = require('../config/db').Model;
 var tracker = require('pixel-tracker');
 var ImpLog = require('../config/mongodb').ImpLog;
+var BGateAgent = require('../helper/BgateAgent');
 
 // ==================================
 // DATABASE CONSTRUCT
@@ -44,6 +45,10 @@ exports.tracker = function(req, res) {
 
 		lastImp = data;
 
+		// Update counter in Bgate Agent 
+		updateBannerImpCounterInAgent(data.PublisherAdZoneID);
+
+		// Update counter in DB
 	    if (!data.PublisherAdZoneID || !data.AdCampaignBannerID) {
 	    	console.error("ERROR: ImpTracker missing AdCampaignBannerID OR PublisherAdZoneID");
 	    } else {
@@ -52,8 +57,26 @@ exports.tracker = function(req, res) {
 	    		else console.log('[' + new Date() + "] Saved ImpLog id " + model.id + ' {'+ data.PublisherAdZoneID +', '+ ', ' + data.AdCampaignBannerID + ', ' + data.UserIP +'}');
 	    	})
 	    }
+
+	    // Finish
 	});
 
 	res.header('Content-Type', 'image/gif');
 	return tracker.middleware(req, res);
 };
+
+var updateBannerImpCounterInAgent = function(bannerId) {
+	if (!BGateAgent && !BGateAgent.agents) return false;
+
+	BGateAgent.agents.forEach(function(agent) {
+		if (!agent.banner) return false;
+		for (var i = 0; i < agent.banner.length; i++) {
+			if (agent.banner[i].AdCampaignBannerPreviewID == bannerId) {
+				agent.banner[i].ImpressionsCounter++;
+				return true;
+			}
+		}
+	});
+
+	return true;
+}

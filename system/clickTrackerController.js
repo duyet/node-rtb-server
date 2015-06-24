@@ -22,28 +22,28 @@ module.exports.tracker = function(req, res) {
 
 	// Creative ID (AdCampaignBannerID) - required 
 	if (!req.query.crid || req.query.crid == 0) {
-		console.error('ERR: Click tracker - crid error or not defined.');
+		console.error("ERR: ["+ new Date() +"] Click tracker - crid error or not defined.");
 		return res.status(404).send();
 	}
 	clickData.AdCampaignBannerID = parseInt(req.query.crid) || 0;
 
 	// impId - required
 	if (!req.query.impId) {
-		console.error('ERR: Click tracker - impId error or not defined.');
+		console.error("ERR: ["+ new Date() +"] Click tracker - impId error or not defined.");
 		return res.status(404).send();
 	}
 	clickData.impId = req.query.impId || '';
 
 	// Adzone ID - required
 	if (!req.query.PublisherAdZoneID) {
-		console.error('ERR: Click tracker - PublisherAdZoneID error or not defined.');
+		console.error("ERR: ["+ new Date() +"] Click tracker - PublisherAdZoneID error or not defined.");
 		return res.status(404).send();
 	}
 	clickData.PublisherAdZoneID = req.query.PublisherAdZoneID;
 
 	// Target URL - required
 	if (!req.query.LandingPageTLD) {
-		console.error('ERR: Click tracker - LandingPageTLD error or not found.');
+		console.error("ERR: ["+ new Date() +"] Click tracker - LandingPageTLD error or not found.");
 		return res.status(404).send();
 	}
 	clickData.TargetURL = req.query.LandingPageTLD || '';
@@ -73,7 +73,7 @@ module.exports.tracker = function(req, res) {
 	// Update counter in Bgate Agent memory
 	updateBannerClickCounterInAgent(clickData.AdCampaignBannerID);
 	
-	console.info('INFO: Redirect to ' + clickData.TargetURL);
+	console.info("INFO: ["+ new Date() +"] Redirect to " + clickData.TargetURL);
 	res.redirect(clickData.TargetURL);
 
 	console.timeEnd("TIMER: Update click tracker data");
