@@ -12,6 +12,7 @@ module.exports = function(app) {
 	var bannerRender = require('../system/bannerRenderController.js');
 	var ping = require('../system/pingController.js');
 	var triggerSystem = require('../system/triggerController.js');
+	var manager = require('../system/managerController.js');
 
 	app.route('/').get(function(req, res) { res.send("Hi, what's up?"); });
 	
@@ -42,11 +43,17 @@ module.exports = function(app) {
 	app.route(routePath.banner_generate_preview_link)
 		.all(bannerRender.generate_preview_link);
 
+	// Ping
 	app.route(routePath.ping)
 		.all(ping.pingme);
 
-	app.route(routePath.bidrequest)
-		.get(bidrequest.generate);
+	// Manager agent 
+	app.route(routePath.manager_agent)
+		.get(manager.agent);
+
+	// Manager banner
+	app.route(routePath.manager_banner)
+		.get(manager.banner);
 
 	// =======================================
 	// TRIGGER

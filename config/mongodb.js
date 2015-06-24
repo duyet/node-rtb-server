@@ -19,11 +19,12 @@ mongoose.connect(connectString, function(err) {
 // DEFINE MONGO COLLECTION
 // ===================================================
 
-var ImpLog = mongoose.model('ImpLog', { PublisherAdZoneID: Number, AdCampaignBannerID: Number, UserIP: String, Country: String, Price: Number, created: Date });
-var ClickLog = mongoose.model('ClickLog', { PublisherAdZoneID: Number, AdCampaignBannerID: Number, UserIP: String, Country: String, Price: Number, created: Date });
-
+var ImpLog = mongoose.model('ImpLog', { impId: String, PublisherAdZoneID: Number, AdCampaignBannerID: Number, UserIP: String, Country: String, Price: Number, created: Date });
+var ClickLog = mongoose.model('ClickLog', { impId: String, PublisherAdZoneID: Number, AdCampaignBannerID: Number, TargetURL: String, UserIP: String, Country: String, Price: Number, created: Date });
 
 // ===================================================
-module.exports.ImpLog 		= ImpLog;
-exports.ClickLog 	= ClickLog;
-module.exports 	= mongoose;
+
+module.exports 	= {
+	ImpLog: ImpLog,
+	ClickLog: ClickLog
+};

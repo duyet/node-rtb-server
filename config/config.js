@@ -31,8 +31,9 @@ module.exports = {
 		ping: '/ping',
 		bidrequest: '/bidrequest',
 		win: '/win',
-		config_agent: '/config_agent',
-		config_banner: '/config_banner',
+
+		manager_agent: '/manager/agent',
+		manager_banner: '/manager/banner',
 
 		// Trigger refresh
 		trigger_reset_agent: '/trigger/refresh/agent',
