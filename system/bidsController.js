@@ -3,28 +3,12 @@
 var moment = require('moment');
 var _ = require('lodash');
 var config = require('../config/config');
-var Model = require('../config/db').Model;
 var build = require('../helper/builder');
 
 // ==================================
 // INIT BID REQUEST PARAM
 // ==================================
-var bidReq = {
-	id: '',
-	imp: [],
-	tmax: 120,
-	site: {
-		"id": "-1",
-		"domain" : "",
-		"cat" : [],
-		"page" : "",
-		"publisher" : {}
-	},
-	user: {"id": ""},
-	device: {"ua": "", "ip": ""},
-	at: 0,
-	cur: ["USD"]
-};
+
 
 var bidTimeout = 1;
 var isBidTimeout = false;
@@ -46,6 +30,23 @@ exports.index = function(req, res) {
 // BID LISTENER
 // ==================================
 exports.bids = function(req, res) {
+	var bidReq = {
+		id: '',
+		imp: [],
+		tmax: 120,
+		site: {
+			"id": "-1",
+			"domain" : "",
+			"cat" : [],
+			"page" : "",
+			"publisher" : {}
+		},
+		user: {"id": ""},
+		device: {"ua": "", "ip": ""},
+		at: 0,
+		cur: ["USD"]
+};
+
 	isBidTimeout = false;
 
 	// Reset bidding queue
@@ -124,6 +125,8 @@ exports.bids = function(req, res) {
 			//res.status(400).send();
 		}
 
+		bidReq.imp.push(newImp);
+
 		console.log("========= REQUEST BANNER =========");
 		console.log(newImp);
 		console.log("==================================");
@@ -183,8 +186,6 @@ exports.bids = function(req, res) {
 		// ==================================
 		if (!biddingQueue) return generateEmptyResponse(res);
 
-
-
 		// console.log("##################", biddingQueue);
 		var choosen = _.sortByOrder(
 			biddingQueue, 
@@ -192,14 +193,18 @@ exports.bids = function(req, res) {
 			[false]
 		);
 
-		var results = [choosen[0]];
+		// TODO: Log lose
 
-		// console.log("BID RES:", results);
+		var win = [choosen[0]];
+
+		// TODO: Log win
+
+		// console.log("BID RES:", win);
 
 		// ==================================
 		// GENERATE RESPONSE 
 		// ==================================
-		generateBidResponse(res, bidReq, results);
+		generateBidResponse(res, bidReq, win);
 
 		console.timeEnd("TIMER: BIDDNG ...");
 	}, bidTimeout);

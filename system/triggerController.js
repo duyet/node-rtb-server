@@ -15,6 +15,8 @@ exports.trigger_reset_agent = function(req, res) {
 		console.timeEnd("INFO: Reseting BGate Agent.");
 	});
 
+	console.log(BGateAgent);
+
 	res.send("ok");
 };
 

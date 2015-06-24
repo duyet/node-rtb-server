@@ -48,6 +48,8 @@ var passSelfBannerFilter = function(banner) {
 }
 
 var initBannerAttributes = function(banner) {
+	if (!banner) return banner;
+
 	// TODO: All attributes for banner, ex: todayImp, totalImp, clickCounter, ...
 	return banner;
 }
@@ -84,7 +86,7 @@ var BGateAgent = {
 							// Filter me 
 							if (!passSelfBannerFilter(banner)) return;
 							
-							initBannerAttributes(banner);
+							banner = initBannerAttributes(banner);
 
 							user.banner.push(banner);
 

@@ -26,7 +26,7 @@ var fs = require('fs'),
 	multipart = require('connect-multiparty'),
 	db = require('./config/db');
 
-
+	console.info("INFO: Init BGate Server");
 	// Initialize express app
 	var app = express();
 
@@ -38,8 +38,6 @@ var fs = require('fs'),
 
 	// Showing stack errors
 	app.set('showStackError', true);
-
-	app.set('bgate_var', require('./config/bgate_var.js'));
 
 	app.set('view engine', 'jade');
 
@@ -149,6 +147,6 @@ var fs = require('fs'),
 	});
 
 
-
-console.info("Listening in port " + config.port + " ...");
+console.info("INFO: Listening in port " + config.port + " ...");
+console.info("==================== Ready to connect =================\n");
 http.createServer(app).listen(config.port);

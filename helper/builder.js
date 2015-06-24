@@ -40,30 +40,39 @@ exports.WinBidUrl = function(bidReq, bid_res) {
 	var url = '';
 	url += config.domain + ':' + config.port + '' + route.win;
 	url += '?pid='+ exports.genHash(String(bid_res.AdCampaignBannerPreviewID)); //bcrypt.hashSync(String(bid_res.AdCampaignBannerPreviewID), bid_res.bgateSalt);
-	url += '&cid=' + bid_res.AdCampaignBannerPreviewID;
+	url += '&crid=' + bid_res.AdCampaignBannerPreviewID || 0;
+	url += '&cid=' + bid_res.AdCampaignID || 0;
 	url += '&type=win';
-	url += '&impId=' + bid_res.impId;
+	url += '&impId=' + bidReq.id;
 	url += '&PublisherAdZoneID=' + bid_res.id || 0;
-	url += '&auctionId=' + bid_res.auctionId;
+	// url += '&auctionId=' + bid_res.auctionId;
 	url += '&site=' + bidReq.site.page;
 	url += '&data=OuJifVtEK&price=${AUCTION_PRICE}';
 
 	return url;
 }
 
+// http://ptnhttt.uit.edu.vn:8899/click_tracker?pid=9
+// &cid=9&PublisherAdZoneID=12&type=click_tracker&impId=undefined
+// &auctionId=undefined&page=undefined&width=120&height=600
+// &LandingPageTLD=http://lvduit.com&js=true
+
 exports.ClickTrackerUrl = function(banner, reqInfo) {
 	console.time("TIMER: Build Click Tracker URL");
 	if (!banner.LandingPageTLD) return '';
 
+	//console.info("============= BUILD CLICK TRACKER INFO, I GOT: ");
+	//console.info(banner);
 	var url = '';
 	url += config.domain + ':' + config.port + '' + route.click_tracker;
-	url += '?pid='+ exports.genHash(String(banner.AdCampaignBannerPreviewID));//bcrypt.hashSync(String(bid_res.AdCampaignBannerPreviewID), bid_res.bgateSalt);
-	url += '&cid=' + banner.AdCampaignBannerPreviewID;
+	url += '?type=click_tracker';
+	url += '&pid='+ exports.genHash(String(banner.AdCampaignBannerPreviewID));//bcrypt.hashSync(String(bid_res.AdCampaignBannerPreviewID), bid_res.bgateSalt);
+	url += '&crid=' + banner.AdCampaignBannerPreviewID;
+	url += '&cid=' + banner.AdCampaignID;
 	url += '&PublisherAdZoneID=' + reqInfo.PublisherAdZoneID || 0;
-	url += '&type=click_tracker';
-	url += '&impId=' + reqInfo.impId || '';
-	url += '&auctionId=' + reqInfo.auctionId || '';
-	url += '&page=' + reqInfo.page || '';
+	url += '&impId=' + reqInfo.bidId || '';
+	// url += '&auctionId=' + reqInfo.auctionId || '';
+	url += '&page=' + (!reqInfo.page ? 'na' : reqInfo.page);
 	url += '&width=' + reqInfo.width || 0;
 	url += '&height=' + reqInfo.height || 0;
 	url += '&LandingPageTLD=' + banner.LandingPageTLD || '';
@@ -106,12 +115,12 @@ exports.AuctionId = function(bannerId) {
 exports.BannerRenderLink = function(bidReq, bid_res) {
 	if (!bidReq || !bid_res) return '';
 
-//	console.error("I got -----------> ", bidReq, '------------->' , bid_res);
+	// console.error("I got -----------> ", bidReq, '------------->' , bid_res);
 	
 	var url = config.domain + ':' + config.port + '' + route.banner_render;
 	url += '?type=banner';
 	url += '&bidId=' + bidReq.id || 'none';
-	url += '&PublisherAdZoneID=' + bidReq.id || 0; 
+	url += '&PublisherAdZoneID=' + bidReq.imp[0].id || 0; 
 	url += '&bannerId=' + bid_res.AdCampaignBannerPreviewID || 0;
 	url += '&width=' + bid_res.Width || 0;
 	url += '&height=' + bid_res.Height || 0;

@@ -57,6 +57,9 @@ exports.render = function(req, res, next) {
 var renderAdContent = function(banner, trackerLink, reqInfo) {
 	if (!banner) return '';
 	
+	console.info("============= reqInfo ===========");
+	console.info(reqInfo);
+
 	var PublisherAdZoneID = parseInt(reqInfo.PublisherAdZoneID) || 0;
 	var impTrackerLink = builder.ImpTrackerUrl(banner, PublisherAdZoneID);
 

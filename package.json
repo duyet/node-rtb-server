@@ -34,6 +34,7 @@
     "merge": "^1.2.0",
     "method-override": "^2.3.3",
     "moment": "^2.10.3",
+    "mongoose": "^4.0.6",
     "morgan": "^1.6.0",
     "mysql": "^2.7.0",
     "openrtb": "0.0.5",
