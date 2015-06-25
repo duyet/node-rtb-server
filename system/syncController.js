@@ -22,7 +22,7 @@ exports.banner = function(req, res) {
 				.save({BidsCounter: banner.BidsCounter, ImpressionsCounter: banner.ImpressionsCounter}, {patch: true})
 				.then(function(model) {
 					if (model) {
-						console.log("UPDATE: ["+ new Date() +"] Success ", model.attributes.AdCampaignBannerPreviewID);
+						console.log("UPDATE: ["+ new Date() +"] Sync banner counter success ", model.attributes.AdCampaignBannerPreviewID);
 					}
 				});
 		}

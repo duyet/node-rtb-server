@@ -353,7 +353,7 @@ var bid = function(newImp, biddingQueue, agent) {
 			if (banner.FreCapTimeFromHr && banner.FreCapTimeToHr && (banner.FreCapShowTime == 0 || !banner.FreCapShowTime)) {
 				var currentHour = new Date().getHours();
 				if (!(banner.FreCapTimeFromHr <= currentHour && currentHour <= banner.FreCapTimeToHr)) {
-					console.info("INFO: [] Creative FrequencyCap set hour from " + banner.FreCapTimeFromHr + "h to " + banner.FreCapTimeToHr + "h, so skip me.");
+					console.info("INFO: ["+ new Date() +"] Creative "+ banner.AdCampaignBannerPreviewID +" FrequencyCap set hour from " + banner.FreCapTimeFromHr + "h to " + banner.FreCapTimeToHr + "h, so skip me.");
 					return false;
 				}
 			}
@@ -375,7 +375,7 @@ var bid = function(newImp, biddingQueue, agent) {
 				if (banner.IABAudienceCategory == newImp.cat[i]) ok = true;
 			}
 			if (!ok) {
-				console.info("INFO: ["+ new Date() +"] Banner with cat["+ banner.IABAudienceCategory +"] doesn't pass to imp cat request ", JSON.stringify(newImp.cat, null, 4));
+				console.info("INFO: ["+ new Date() +"] Creative "+ banner.AdCampaignBannerPreviewID +" with cat["+ banner.IABAudienceCategory +"] doesn't pass to imp cat request ", JSON.stringify(newImp.cat, null, 4));
 				return false;
 			}
 		}
