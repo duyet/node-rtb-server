@@ -16,15 +16,18 @@ var BGateAgent = {
 	listBanner : [],
 
 	init : function(next) {
+		BGateAgent.agents = []; // reset empty
+
 		var q = "SELECT * FROM (SELECT * FROM auth_Users WHERE DemandCustomerInfoID IS NOT NULL) AS tb1 INNER JOIN (SELECT * FROM `DemandCustomerInfo`) AS tb2 ON tb1.DemandCustomerInfoID = tb2.DemandCustomerInfoID INNER JOIN (SELECT * FROM `AdCampaignBannerPreview`) AS tb3 ON tb1.user_id = tb3.UserID;";
 
 		connection.query(q, function(err, rows, fields) {
 			if (err || !rows) throw err;
-			//console.log("==== query ok =====");
+			console.log("==== query ok =====");
 
-			for (var i in rows) {
-				//console.log("==== IN ROW "+ i +" ====================================");
-				var row = rows[i];
+			rows.forEach(function(row, i) {
+			//for (var i in rows) {
+				// console.log("==== IN ROW "+ i +" ====================================", row);
+				// var row = rows[i];
 
 				// Check user is in agent list ?
 				var isExists = false;
@@ -54,16 +57,16 @@ var BGateAgent = {
 						// Check banner is in array 
 						if (rows[j].user_id == row.user_id) {
 							//console.log("PASS USER ", row.user_id);
-							var isExists = false;
+							var _isExists = false;
 							for (var z in agent.banner) {
-								if (isExists == true) return false;
+								if (_isExists == true) return false;
 								if (agent.banner[z].AdCampaignBannerPreviewID == rows[j].AdCampaignBannerPreviewID) {
-									isExists = true;
+									_isExists = true;
 									return false;
 								}
 							}
 
-							if (!isExists) {
+							if (!_isExists) {
 								
 								var _rowBanner = rows[j];
 								var banner = {
@@ -126,16 +129,15 @@ var BGateAgent = {
 
 								if (passSelfBannerFilter(banner))
 									agent.banner.push(banner);
-								
+
 							}
 						}
-					}
+					} 
 
 					BGateAgent.agents.push(agent);
-				}
-			}
-
-			//console.log(BGateAgent.agents);
+				} 
+			});
+			// console.log(BGateAgent.agents);
 
 			if (next) next();
 		});
@@ -179,7 +181,7 @@ var initBannerAttributes = function(banner) {
 
 
 BGateAgent.init(function() {
-	if (1 == 2) {
+	if (1 == 1) {
 		setTimeout(function() {
 			require('fs').writeFile("bgate_agent.txt", JSON.stringify(BGateAgent.agents, null, 4), null);
 		}, 2000);

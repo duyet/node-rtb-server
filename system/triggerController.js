@@ -9,7 +9,9 @@ exports.trigger_reset_agent = function(req, res) {
 		return res.status(404).send("Not Found");
 	}
 
-	// Update Counter to DB
+	console.log("###################################################");
+	console.log("########### WARNING: RESTART BGATE AGENT ##########");
+	console.log("###################################################");
 
 	// Refresh BGate Agent Data from DB
 	console.time("INFO: Reseting BGate Agent.");
@@ -28,6 +30,11 @@ exports.trigger_reset_publisher = function(req, res) {
 		return res.status(404).send("Not Found");
 	}
 
+	console.log("###################################################");
+	console.log("########### WARNING: RESTART PUBLISHER ############");
+	console.log("###################################################");
+
+
 	console.time("INFO: Reseting Publisher.");
 	Publisher.init(function() {
 		console.log("INFO: ["+ new Date() +"] Reset BGate Publisher success.");
@@ -44,16 +51,20 @@ exports.trigger_reset_all = function(req, res) {
 		return res.status(404).send("Not Found");
 	}
 
+	console.log("###################################################");
+	console.log("########### WARNING: RESTART ALL ##################");
+	console.log("###################################################");
+
 	console.time("INFO: Reseting BGate Agent.");
 	BGateAgent.init(function() {
 		console.log("INFO: ["+ new Date() +"] Reset BGate Agent success.");
 		console.timeEnd("INFO: Reseting BGate Agent.");
 	});
 
-	console.time("INFO: Reseting BGate Agent.");
+	console.time("INFO: Reseting BGate Publisher.");
 	Publisher.init(function() {
-		console.log("INFO: Reset BGate Agent success.");
-		console.timeEnd("INFO: Reseting BGate Agent.");
+		console.log("INFO: ["+ new Date() +"] Reset BGate Publisher success.");
+		console.timeEnd("INFO: Reseting BGate Publisher.");
 	});
 
 	res.send("ok");
