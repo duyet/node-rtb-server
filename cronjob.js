@@ -7,12 +7,12 @@ var logPath = __dirname + '/logs/cronjob.log';
 
 console.log("Started cronjob server.");
 function puts(error, stdout, stderr) {
-	console.log('stdout: ' + stdout);
+	// console.log('stdout: ' + stdout);
 	console.log('stderr: ' + stderr);
 	if (error !== null) console.log('exec error: ' + error);
 }
 
-var syncBannerEvery = 2 * 60 * 1000; // 2 min
+var syncBannerEvery = 10 * 60 * 1000; // 2 min
 var syncBanner = setInterval(function() {
 	run(rootPath + "/cronjob/sync-banner-counter.js");
 }, syncBannerEvery);
