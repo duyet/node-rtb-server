@@ -21,7 +21,7 @@ mongoose.connect(connectString, function(err) {
 
 var ImpLog = mongoose.model('ImpLog', { impId: String, PublisherAdZoneID: Number, AdCampaignBannerID: Number, UserIP: String, Country: String, Price: Number, created: Date });
 var ClickLog = mongoose.model('ClickLog', { impId: String, PublisherAdZoneID: Number, AdCampaignBannerID: Number, TargetURL: String, UserIP: String, Country: String, Price: Number, created: Date });
-var BiddingMapLog = mongoose.model('BidddingMapLog', {impId: String, AdzoneMapBannerId: String, PublisherAdZoneID: Number, AdCampaignBannerID: Number, created: Date})
+var BiddingMapLog = mongoose.model('BidddingMapLog', {impId: String, AdzoneMapBannerId: String, PublisherAdZoneID: Number, AdCampaignBannerID: Number, status: String, created: Date})
 
 // ===================================================
 

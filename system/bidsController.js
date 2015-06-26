@@ -189,6 +189,7 @@ exports.bids = function(req, res) {
 				AdzoneMapBannerId: build.getAdzoneMapBannerId(bidReq.id, bidReq.site.id),
 				PublisherAdZoneID: bidReq.site.id, 
 				AdCampaignBannerID: bidding.AdCampaignBannerPreviewID,
+				status: '',
 				created: logDatetime
 			}).save(function(err, model) {
 				if (err) console.error(err);

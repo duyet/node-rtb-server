@@ -60,7 +60,8 @@ exports.WinBidUrl = function(bidReq, bid_res) {
 	url += '&crid=' + bid_res.AdCampaignBannerPreviewID || 0;
 	//url += '&cid=' + bid_res.AdCampaignID || 0;
 	url += '&type=win_notice';
-	url += '&impId=' + bidReq.id;
+	url += '&bidReqId=' + bidReq.id;
+	url += '&impId=' + bid_res.impId;
 	url += '&mapper=' + bid_res.mapperId;
 	url += '&PublisherAdZoneID=' + parseInt(bidReq.site.id) || 0;
 	// url += '&auctionId=' + bid_res.auctionId;
@@ -119,7 +120,7 @@ exports.ImpTrackerUrl = function(banner, PublisherAdZoneID) {
 }
 
 exports.genHash = function(string) {
-	console.warn("GENHASH: ", string);
+	//console.warn("GENHASH: ", string);
 	// TODO: hash function here
 	string = hash(string);
 
