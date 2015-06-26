@@ -78,7 +78,6 @@ exports.index = function(req, res) {
 
 		});
 
-		console.error(biddingQueue);
 	});
 
 }

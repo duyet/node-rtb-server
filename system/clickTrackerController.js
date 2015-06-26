@@ -54,7 +54,7 @@ module.exports.tracker = function(req, res) {
 	// User Country - TODO: Get user country
 	clickData.Country = "";
 
-	// Prices
+	// TODO: Add prices
 	clickData.Price = 0.0;
 
 	// Created time
