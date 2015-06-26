@@ -1,17 +1,19 @@
 'use strict';
 
+var config = require('../config/config');
 var BGateAgent = require('../helper/BgateAgent.js');
 var builder = require('../helper/builder.js');
 
 exports.render = function(req, res, next) {
+	var logDatetime = new Date();
 	console.log("=================== AD BANNER RENDER ===================");
 	
 	if (!req.query) {
-		console.error("ERR: ["+ new Date() +"] Missing query param.");
+		console.error("ERR: ["+ logDatetime +"] Missing query param.");
 		return res.status(404).send();
 	}
 	if (!BGateAgent || !BGateAgent.agents) {
-		console.error("ERR: ["+ new Date() +"] Missing BGateAgent or error.");
+		console.error("ERR: ["+ logDatetime +"] Missing BGateAgent or error.");
 		return res.status(404).send();
 	}
 	
@@ -23,11 +25,11 @@ exports.render = function(req, res, next) {
 	var height = req.query.height || 0;
 
 	if (!bannerId) {
-		console.error("ERR: ["+ new Date() +"] Missing bannerId.");
+		console.error("ERR: ["+ logDatetime +"] Missing bannerId.");
 		return res.status(404).send();
 	}
 	if (!PublisherAdZoneID) {
-		console.error("ERR: ["+ new Date() +"] Missing PublisherAdZoneID.");
+		console.error("ERR: ["+ logDatetime +"] Missing PublisherAdZoneID.");
 		return res.status(404).send();
 	}
 
@@ -52,7 +54,7 @@ exports.render = function(req, res, next) {
 	});
 	
 	if (!isRendered) {
-		console.error("ERR: ["+ new Date() +"] Banner render, no thing to render.")
+		console.error("ERR: ["+ logDatetime +"] Banner render, no thing to render.")
 		return res.status(404).send();
 	}
 	// next();
@@ -61,8 +63,8 @@ exports.render = function(req, res, next) {
 var renderAdContent = function(banner, trackerLink, reqInfo) {
 	if (!banner) return '';
 	
-	console.info("============= reqInfo ===========");
-	console.info(reqInfo);
+	//console.info("============= reqInfo ===========");
+	//console.info(reqInfo);
 
 	var PublisherAdZoneID = parseInt(reqInfo.PublisherAdZoneID) || 0;
 	var impTrackerLink = builder.ImpTrackerUrl(banner, PublisherAdZoneID);
@@ -72,14 +74,14 @@ var renderAdContent = function(banner, trackerLink, reqInfo) {
 	var ad = '<!doctype html>\
 		<html>\
 		<head><title>Bgate by ISLab</title>\
-		<style>* {margin:0; padding:0} .bgateAdmLogo {background: url(//3.bp.blogspot.com/-FWZ8ppmaUpk/VYQ9Oe6h6OI/AAAAAAAACjU/qyGoayEtu58/s1600/adxlogo-2.png) no-repeat top left;display: block;width: 35px;height: 20px;z-index: 999;position: absolute;top: 0px;right: 0px;} .bgateAdmLogo:hover {  width: 103px; background: url(//3.bp.blogspot.com/-r87fGsSXmWA/VYfab3YV-0I/AAAAAAAACjs/hn-ylyS1Kzk/s1600/adxlogo-2-hover.png) no-repeat top left;}</style>\
+		<style>* {margin:0; padding:0} .bgateAdmLogo {background: url('+ config.bgate_ad_icon +') no-repeat top left;display: block;width: 35px;height: 20px;z-index: 999;position: absolute;top: 0px;right: 0px;} .bgateAdmLogo:hover {  width: 103px; background: url('+ config.bgate_ad_icon_hover +') no-repeat top left;}</style>\
 		</head>\
 		<body>\
 		<!-- px tracker -->\
 		<img src="'+ impTrackerLink +'" width="0" height="0" style="display:none" />\
 		<div style="position:relative;width:'+ banner.Width +'px;height:'+ banner.Height +'px;">\
 		<a href="'+ trackerLink +'" target=\"_top\"><img src="'+ banner.AdUrl +'" width="'+ banner.Width +'" height="'+ banner.Height +'" /></a>\
-		<a href="#" class="bgateAdmLogo"><span></span></a>\
+		<a href="'+ config.bgate_ad_link +'" class="bgateAdmLogo"><span></span></a>\
 		</div>\
 		</body>\
 		</html>';

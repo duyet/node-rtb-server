@@ -1,8 +1,6 @@
 'use strict';
 
-/**
- * Module dependencies.
- */
+console.info("\n\n\n\n................................................\n\n\n");
 
 // PMX for HTTP Analysic
 require('pmx').init();
