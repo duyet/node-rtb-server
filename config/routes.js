@@ -9,6 +9,7 @@ module.exports = function(app) {
 	var bidrequest = require('../system/bidrequestController.js');
 	var impTracker = require('../system/impTrackerController.js');
 	var clickTracker = require('../system/clickTrackerController.js');
+	var winNotice = require('../system/winNoticeController.js');
 	var bannerRender = require('../system/bannerRenderController.js');
 	var ping = require('../system/pingController.js');
 	var triggerSystem = require('../system/triggerController.js');
@@ -33,6 +34,9 @@ module.exports = function(app) {
 	// Click tracker
 	app.route(routePath.click_tracker)
 		.get(clickTracker.tracker);
+
+	app.route(routePath.win)
+		.get(winNotice.index);
 
 	// Banner render
 	app.route(routePath.banner_render)

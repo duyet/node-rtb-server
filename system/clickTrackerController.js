@@ -12,7 +12,7 @@ var ClickLog = require('../config/mongodb').ClickLog;
 	&width=120&height=600&LandingPageTLD=http://lvduit.com&js=true
 */
 module.exports.tracker = function(req, res) {
-	console.log("=============== REQUEST: Click Tracker ==================");
+	console.log("REQUEST: ["+ new Date() +"] Click Tracker ==================");
 	console.time("TIMER: Update click tracker data");
 
 	if (!req.query) return res.status(404).send(404);
