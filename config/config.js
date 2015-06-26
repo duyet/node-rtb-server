@@ -41,7 +41,7 @@ module.exports = {
 		banner_generate_preview_link: '/banner_generate_preview_link',
 		ping: '/ping',
 		bidrequest: '/bidrequest',
-		win: '/win',
+		win: '/win_notice',
 
 		manager_agent: '/manager/agent',
 		manager_banner: '/manager/banner',
@@ -53,6 +53,10 @@ module.exports = {
 
 		// Sync
 		sync_banner: '/sync/banner',
-	}
+	}, 
+
+	bgate_ad_icon: '//3.bp.blogspot.com/-FWZ8ppmaUpk/VYQ9Oe6h6OI/AAAAAAAACjU/qyGoayEtu58/s1600/adxlogo-2.png',
+	bgate_ad_icon_hover: '//3.bp.blogspot.com/-r87fGsSXmWA/VYfab3YV-0I/AAAAAAAACjs/hn-ylyS1Kzk/s1600/adxlogo-2-hover.png',
+	bgate_ad_link: 'http://ads.bda.com.vn',
 }
 

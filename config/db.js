@@ -10,7 +10,7 @@ var knex = require('knex')({
   connection: config
 });
 
-console.info("INFO: Connect to MySQL Server.");
+console.info("INFO: ["+ new Date() +"] Connect to MySQL Server.");
 var bookshelf = require('bookshelf')(knex);
 
 module.exports.config = config;
