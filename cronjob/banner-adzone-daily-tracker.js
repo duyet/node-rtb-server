@@ -1,8 +1,8 @@
 'use strict';
 
-var Model = require('./config/db').Model;
-var ImpLog = require('./config/mongodb').ImpLog;
-var ClickLog = require('./config/mongodb').ClickLog;
+var Model = require('../config/db').Model;
+var ImpLog = require('../config/mongodb').ImpLog;
+var ClickLog = require('../config/mongodb').ClickLog;
 
 var _ = require('lodash');
 
@@ -54,6 +54,7 @@ ImpLog.find({
 	function(err, rows) {
 		if (err) console.log(err);
 		else {
+			reports_AdBannerDailyTracker = [];
 			// TODO: optimise for meeeeeee
 
 			// So, do some fucking loop
@@ -63,6 +64,7 @@ ImpLog.find({
 
 				// Current Banner 
 				var banner_id = row.AdCampaignBannerID;
+				console.log(banner_id);
 
 				// Check for exists in reports_AdBannerDailyTracker array
 				var isExists = false;
@@ -165,7 +167,7 @@ ImpLog.find({
 	function(err, rows) {
 		if (err) console.log(err);
 		else {
-			// TODO: optimise for meeeeeee
+			reports_AdzoneDailyTracker = [];
 
 			// So, do some fucking loop
 			
