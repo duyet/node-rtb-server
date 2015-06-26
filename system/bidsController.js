@@ -10,9 +10,10 @@ var BiddingMapLog = require('../config/mongodb').BiddingMapLog;
 // INIT BID REQUEST PARAM
 // ==================================
 
-
-var bidTimeout = 1;
+var bidTimeout = 120;
 var isBidTimeout = false;
+
+var lastBidId = "";
 
 // ==================================
 // LOAD ALL BANNER TO CACHE
@@ -78,6 +79,13 @@ exports.bids = function(req, res) {
 	// COLLECT DATA
 	// ==================================
 	bidReq.id = req.body.id;
+	if (lastBidId && lastBidId == bidReq.id) {
+		var s = "ERR: ["+ logDatetime +"] "+ lastBidId +" is aldready in process.";
+		console.error(s);
+		return res.status(500).json(s);
+	}
+	lastBidId = bidReq.id;
+
 	bidReq.at = req.body.at || bidReq.at;
 	if (req.body.device) {
 		bidReq.device.ua = req.body.device.ua || bidReq.device.ua;

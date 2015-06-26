@@ -5,6 +5,7 @@ var _ = require('lodash');
 var BGateAgent = require('../helper/BgateAgent.js');
 var tracker = require('pixel-tracker');
 var ClickLog = require('../config/mongodb').ClickLog;
+var BiddingMapLog = require('../config/mongodb').BiddingMapLog;
 
 /*
 	http://ptnhttt.uit.edu.vn:8899/click_tracker?type=click_tracker&pid=9&
