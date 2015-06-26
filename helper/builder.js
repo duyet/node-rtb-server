@@ -1,5 +1,6 @@
 'use strict';
 
+var hash = require('string-hash');
 var config = require('../config/config');
 var route = config.routes;
 
@@ -36,18 +37,36 @@ exports.AdmTag = function(bidReq, bid_res) {
 	return admTag;
 }
 
-exports.WinBidUrl = function(bidReq, bid_res) {
+exports.WinBidUrlForRubiCon = function(bidReq, bid_res) {
 	var url = '';
 	url += config.domain + ':' + config.port + '' + route.win;
 	url += '?pid='+ exports.genHash(String(bid_res.AdCampaignBannerPreviewID)); //bcrypt.hashSync(String(bid_res.AdCampaignBannerPreviewID), bid_res.bgateSalt);
 	url += '&crid=' + bid_res.AdCampaignBannerPreviewID || 0;
 	url += '&cid=' + bid_res.AdCampaignID || 0;
-	url += '&type=win';
+	url += '&type=win_notice_rubicon';
 	url += '&impId=' + bidReq.id;
 	url += '&PublisherAdZoneID=' + bid_res.id || 0;
 	// url += '&auctionId=' + bid_res.auctionId;
 	url += '&site=' + bidReq.site.page;
-	url += '&data=OuJifVtEK&price=${AUCTION_PRICE:BF}';
+	url += '&price=${AUCTION_PRICE:BF}';
+
+	return url;
+}
+
+exports.WinBidUrl = function(bidReq, bid_res) {
+	var url = '';
+	url += config.domain + ':' + config.port + '' + route.win;
+	url += '?pid='+ exports.genHash(String(bid_res.AdCampaignBannerPreviewID)); //bcrypt.hashSync(String(bid_res.AdCampaignBannerPreviewID), bid_res.bgateSalt);
+	url += '&crid=' + bid_res.AdCampaignBannerPreviewID || 0;
+	//url += '&cid=' + bid_res.AdCampaignID || 0;
+	url += '&type=win_notice';
+	url += '&impId=' + bidReq.id;
+	url += '&mapper=' + bid_res.mapperId;
+	url += '&PublisherAdZoneID=' + parseInt(bidReq.site.id) || 0;
+	// url += '&auctionId=' + bid_res.auctionId;
+	url += '&site=' + encodeURIComponent(bidReq.site.page);
+	url += '&price=' + bid_res.BidAmount;
+	url += '&data=' + exports.genHash(String(bid_res.BidAmount) + String(bid_res.AdCampaignBannerPreviewID))
 
 	return url;
 }
@@ -100,9 +119,15 @@ exports.ImpTrackerUrl = function(banner, PublisherAdZoneID) {
 }
 
 exports.genHash = function(string) {
+	console.warn("GENHASH: ", string);
 	// TODO: hash function here
+	string = hash(string);
 
 	return string;
+}
+
+exports.getAdzoneMapBannerId = function(bidReqId, adzone) {
+	return exports.genHash(String(bidReqId) + String(adzone) + 'bgate');
 }
 
 exports.AuctionId = function(bannerId) {
@@ -120,14 +145,14 @@ exports.BannerRenderLink = function(bidReq, bid_res) {
 	var url = config.domain + ':' + config.port + '' + route.banner_render;
 	url += '?type=banner';
 	url += '&bidId=' + bidReq.id || 'none';
-	url += '&PublisherAdZoneID=' + bidReq.imp[0].id || 0; 
+	url += '&PublisherAdZoneID=' + parseInt(bidReq.site.id) || 0; 
 	url += '&bannerId=' + bid_res.AdCampaignBannerPreviewID || 0;
 	url += '&width=' + bid_res.Width || 0;
 	url += '&height=' + bid_res.Height || 0;
-	url += '&name=' + bid_res.Name || '';
+	url += '&name=' + encodeURIComponent(bid_res.Name) || '';
 	url += '&link_type=render';
 	url += '&js=true';
-	url += '&price=${AUCTION_PRICE:BF}';
+	url += '&price=${AUCTION_PRICE:BF}'; // Require by rubicon
 	//url += '&i=' + bid_res.AdUrl || '';
 
 	return url;
@@ -140,7 +165,7 @@ exports.BannerPreviewLink = function(banner) {
 	url += '?type=preview&uname=bgate';
 	url += '&Width=' + banner.Width || 0;
 	url += '&Height=' + banner.Height || 0;
-	url += '&AdUrl=' + banner.AdUrl;
+	url += '&AdUrl=' + encodeURIComponent(banner.AdUrl)	;
 	url += '&banner_type=img';
 	url += '&link_type=preview';
 	url += '&js=true';

@@ -16,13 +16,15 @@ var BGateAgent = {
 	listBanner : [],
 
 	init : function(next) {
+		console.info("INFO: ["+ new Date() +"] Init BGate Agent Data.");
+
 		BGateAgent.agents = []; // reset empty
 
 		var q = "SELECT * FROM (SELECT * FROM auth_Users WHERE DemandCustomerInfoID IS NOT NULL) AS tb1 INNER JOIN (SELECT * FROM `DemandCustomerInfo`) AS tb2 ON tb1.DemandCustomerInfoID = tb2.DemandCustomerInfoID INNER JOIN (SELECT * FROM `AdCampaignBannerPreview`) AS tb3 ON tb1.user_id = tb3.UserID;";
 
 		connection.query(q, function(err, rows, fields) {
 			if (err || !rows) throw err;
-			console.log("==== query ok =====");
+			// console.log("==== query ok =====");
 
 			rows.forEach(function(row, i) {
 			//for (var i in rows) {
