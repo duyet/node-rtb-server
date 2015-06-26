@@ -7,11 +7,11 @@ exports.render = function(req, res, next) {
 	console.log("=================== AD BANNER RENDER ===================");
 	
 	if (!req.query) {
-		console.error("ERR: Missing query param.");
+		console.error("ERR: ["+ new Date() +"] Missing query param.");
 		return res.status(404).send();
 	}
 	if (!BGateAgent || !BGateAgent.agents) {
-		console.error("ERR: Missing BGateAgent or error.");
+		console.error("ERR: ["+ new Date() +"] Missing BGateAgent or error.");
 		return res.status(404).send();
 	}
 	
@@ -23,17 +23,18 @@ exports.render = function(req, res, next) {
 	var height = req.query.height || 0;
 
 	if (!bannerId) {
-		console.error("ERR: Missing bannerId.");
+		console.error("ERR: ["+ new Date() +"] Missing bannerId.");
 		return res.status(404).send();
 	}
 	if (!PublisherAdZoneID) {
-		console.error("ERR: Missing PublisherAdZoneID.");
+		console.error("ERR: ["+ new Date() +"] Missing PublisherAdZoneID.");
 		return res.status(404).send();
 	}
 
 	var finishLoop = false;
 	var isRendered = false;
 	BGateAgent.agents.forEach(function(agent) {
+		if (isRendered) return false;
 		if (agent && agent.banner) {
 			agent.banner.forEach(function(banner) {
 				if (finishLoop) return true;
@@ -50,7 +51,10 @@ exports.render = function(req, res, next) {
 		}
 	});
 	
-	// if (!isRendered) return res.status(404).send(404);
+	if (!isRendered) {
+		console.error("ERR: ["+ new Date() +"] Banner render, no thing to render.")
+		return res.status(404).send();
+	}
 	// next();
 };
 

@@ -32,6 +32,8 @@ module.exports = {
 		man: '/man',
 
 		bids: '/bids',
+		rubicon_bids: '/rubicon_bids',
+		
 		imp_tracker: '/imp_tracker',
 		click_tracker: '/click_tracker',
 		banner_render: '/banner_render',
