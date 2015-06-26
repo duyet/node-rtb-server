@@ -4,6 +4,7 @@ var moment = require('moment');
 var _ = require('lodash');
 var config = require('../config/config');
 var build = require('../helper/builder');
+var BiddingMapLog = require('../config/mongodb').BiddingMapLog;
 
 // ==================================
 // INIT BID REQUEST PARAM
@@ -52,19 +53,26 @@ exports.bids = function(req, res) {
 	// Reset bidding queue
 	var biddingQueue = [];
 
-	console.info("============================================================");
-	console.info("============================================================");
-	console.log("TRACK: On Bid request - ", moment.utc().format());
-	console.info("============================================================");
-	console.info("============================================================");
+	var logDatetime = new Date();
 
+	console.info("============================================================");
+	console.info("TRACK: ["+ logDatetime +"] On Bid request");
 
 	// ==================================
 	// VALIDATE BIDS REQUEST
 	// ==================================
-	if (!req.body) return res.status(500).json("ERR: Can not parse bid request");
-	if (!req.body.id) return res.status(500).json("ERR: Missing bid request id.");
-	if (!req.body.imp || !_.isArray(req.body.imp)) return res.status(500).json("ERR: Missing bid request imp.");
+	if (!req.body) {
+		console.error("ERR: ["+ logDatetime +"] Can not parse bid request");
+		return res.status(500).json("ERR: ["+ logDatetime +"] Can not parse bid request");
+	}
+	if (!req.body.id) {
+		console.error("ERR: ["+ logDatetime +"] Missing bid request id.");
+		return res.status(500).json("ERR: ["+ logDatetime +"] Missing bid request id.");
+	}
+	if (!req.body.imp || !_.isArray(req.body.imp)) {
+		console.error("ERR: ["+ logDatetime +"] Missing bid request imp.");
+		return res.status(500).json("ERR: ["+ logDatetime +"] Missing bid request imp.");
+	}
 
 	// ==================================
 	// COLLECT DATA
@@ -80,8 +88,8 @@ exports.bids = function(req, res) {
 		bidReq.site.domain = req.body.site.domain || bidReq.site.domain;
 		bidReq.site.cat = req.body.site.cat || bidReq.site.cat;
 		if (!_.isArray(bidReq.site.cat)) {
-			console.error("ERR: ["+ new Date() +"] site.cat must is array.");
-			return res.status(500).json("ERR: site.cat must is array.");
+			console.error("ERR: ["+ logDatetime +"] Imp ID ["+ bidReq.id +"]: site.cat must is array.");
+			return res.status(500).json("ERR: ["+ logDatetime +"] Imp ID ["+ bidReq.id +"]: site.cat must is array.");
 		}
 
 		bidReq.site.page = req.body.site.page || bidReq.site.page;
@@ -126,14 +134,14 @@ exports.bids = function(req, res) {
 
 		// Check adzone 
 		if (!checkAdzoneId(newImp.id)) {
-			console.error("ERR: Adzone "+ newImp.id +" not exists!");
+			console.error("ERR: ["+ logDatetime +"] Adzone ["+ newImp.id +"] not exists!");
 			isBreak = true; isError = true;
 			//res.status(400).send();
 		}
 
 		bidReq.imp.push(newImp);
 
-		console.log("========= REQUEST BANNER =========");
+		console.log("========= REQUEST "+ newImp.id +" =========");
 		console.log(newImp);
 		console.log("==================================");
 
@@ -144,27 +152,6 @@ exports.bids = function(req, res) {
 		_.map(BGateAgent.agents, _.curry(bid)(newImp, biddingQueue));
 
 		console.log("Find banner with: width = " + newImp.banner.width + ", height = " + newImp.banner.height + ", bidfloor = " + newImp.bidfloor)
-		
-		/*
-		var winBanners = [];
-		BGateAgent.listBanner.forEach(function(banner) {
-			if (!passSelfBannerFilter(banner)) return;
-			if (banner.Width == newImp.banner.width && banner.Height == newImp.banner.height && banner.BidAmount >= newImp.bidfloor) {
-				var b = banner;
-				// Asign to request imp id
-				b.impId = newImp.id;
-				b.auctionId = build.AuctionId(b.AdCampaignBannerPreviewID);
-
-				winBanners.push(b);
-			}
-		});
-		//console.log('---> ', winBanners);
-
-		// TODO: More filter
-		// ...........................
-		var banner = filterBannerResult(winBanners);
-		results.push(banner);
-		*/
 	});
 
 	// ==================================
@@ -172,12 +159,6 @@ exports.bids = function(req, res) {
 	// ==================================
 	console.time("TIMER: BIDDNG ...");
 	var biddingTimeout = setTimeout(function() {
-		//if (isError == true) {
-		//	console.log("ERR: In error, empty response.");
-		//	return false;
-		//}
-		// Choose win bidding
-		//console.log("biddingQueue", biddingQueue);
 
 		// ==================================
 		// WHO'S WIN?
@@ -195,15 +176,28 @@ exports.bids = function(req, res) {
 
 		var win = [choosen[0]];
 
-		// TODO: Log win
-
-		// console.log("BID RES:", win);
-
 		// ==================================
 		// GENERATE RESPONSE 
 		// ==================================
 		generateBidResponse(res, bidReq, win);
 
+		// Save Bidding Mapper 
+		console.time("TIMER: Save Bid Mapper to Database");
+		biddingQueue.forEach(function(bidding) {
+			new BiddingMapLog({
+				impId: bidding.impId, 
+				AdzoneMapBannerId: build.getAdzoneMapBannerId(bidReq.id, bidReq.site.id),
+				PublisherAdZoneID: bidReq.site.id, 
+				AdCampaignBannerID: bidding.AdCampaignBannerPreviewID,
+				created: logDatetime
+			}).save(function(err, model) {
+				if (err) console.error(err);
+				else console.log('[' + logDatetime + "] Saved Bid Mapper id " + model.id + ' for ['+ bidReq.site.id +', '+ bidding.AdCampaignBannerPreviewID +']');
+			});
+		});
+		console.timeEnd("TIMER: Save Bid Mapper to Database");
+
+		// Save bid response
 		console.timeEnd("TIMER: BIDDNG ...");
 	}, bidTimeout);
 
@@ -219,41 +213,47 @@ var generateEmptyResponse = function(res) {
 }
 
 var generateBidResponse = function(res, bidReq, bidRes) {
+	var logDatetime = new Date();
 	console.time("TIMER: Generate Bid Response");
 
 	isBidTimeout = true; // Generate response, also mean timeout for bidding
 	if (!bidRes || !bidReq) {
-		console.log("TRACK: ["+ new Date() +"] No response.");
+		console.log("TRACK: ["+ logDatetime +"] No response.");
 		return generateEmptyResponse(res);
 	}
 
 	//console.log("Bid response data: ", bidRes);
 
 	if (!bidRes.length) {
-		console.log("INFO: ["+ new Date() +"] Generate empty response.");
+		console.log("INFO: ["+ logDatetime +"] Generate empty response.");
 		return generateEmptyResponse(res);
 	}
 
 	// TODO: Support multi bidding
 	var bid_res = bidRes[0] || false;
 
+	// Not bid response
 	if (!bid_res) return generateEmptyResponse(res);
 
 	bid_res.bgateSalt = build.genHash('123456');// bcrypt.genSaltSync(10);
+	bid_res.mapperId = build.getAdzoneMapBannerId(
+								bidReq.id, // Bid Request ID 
+								bidReq.site.id); // Adzone ID
 	//console.log('BID RESPONSE DATA: ', bidRes);
 
 	// ===============================================
 	// BUILD RESPONSE
 	// ===============================================
 	var bidResponse = {};
-	bidResponse.id = ""; // Bid response id 
+	bidResponse.id = bidReq.id; // Bid response id 
+
 
 	bidResponse.seatbid = [
 		{
 			bid: [
 				{
 					// Bid ID
-					id : build.genHash(String(bid_res.AdCampaignBannerPreviewID)), // bcrypt.hashSync(String(bid_res.AdCampaignBannerPreviewID), bid_res.bgateSalt)
+					id : bid_res.mapperId,
 
 					// Imp ID
 					impid: bid_res.impId,
@@ -294,11 +294,11 @@ var generateBidResponse = function(res, bidReq, bidRes) {
 		}
 	];
 
-	res.json(bidResponse);
+	res.json(bidResponse).end();
 	console.log("SEND BIDDING RESPONSE!!");
 	console.info("============================================================");
 
-    console.timeEnd("TIMER: Generate Bid Response")
+    console.timeEnd("TIMER: Generate Bid Response");
 }
 
 var filterBannerResult = function(winBanners) {
@@ -333,6 +333,7 @@ var checkAdzoneId = function(adzoneId) {
 }
 
 var bid = function(newImp, biddingQueue, agent) {
+	var logDatetime = new Date();
 	console.log("TRACK: Run Agent ", agent.user_email);
 
 	if (isBidTimeout) return false; // Bidding timeout
@@ -351,16 +352,16 @@ var bid = function(newImp, biddingQueue, agent) {
 
 			// FrequencyCap from hour to hour
 			if (banner.FreCapTimeFromHr && banner.FreCapTimeToHr && (banner.FreCapShowTime == 0 || !banner.FreCapShowTime)) {
-				var currentHour = new Date().getHours();
+				var currentHour = logDatetime.getHours();
 				if (!(banner.FreCapTimeFromHr <= currentHour && currentHour <= banner.FreCapTimeToHr)) {
-					console.info("INFO: ["+ new Date() +"] Creative "+ banner.AdCampaignBannerPreviewID +" FrequencyCap set hour from " + banner.FreCapTimeFromHr + "h to " + banner.FreCapTimeToHr + "h, so skip me.");
+					console.info("INFO: ["+ logDatetime +"] Creative "+ banner.AdCampaignBannerPreviewID +" FrequencyCap set hour from " + banner.FreCapTimeFromHr + "h to " + banner.FreCapTimeToHr + "h, so skip me.");
 					return false;
 				}
 			}
 
 			// FrequencyCap x time in a day
 			else if (banner.FreCapShowTime && banner.currentFreCapShowTime < 0) {
-				console.info("INFO: ["+ new Date() +"] Creative " + banner.AdCampaignBannerPreviewID + " pass to FrequencyCap, so skip me.");
+				console.info("INFO: ["+ logDatetime +"] Creative " + banner.AdCampaignBannerPreviewID + " pass to FrequencyCap, so skip me.");
 				return false;
 			}
 
@@ -375,7 +376,7 @@ var bid = function(newImp, biddingQueue, agent) {
 				if (banner.IABAudienceCategory == newImp.cat[i]) ok = true;
 			}
 			if (!ok) {
-				console.info("INFO: ["+ new Date() +"] Creative "+ banner.AdCampaignBannerPreviewID +" with cat["+ banner.IABAudienceCategory +"] doesn't pass to imp cat request ", JSON.stringify(newImp.cat, null, 4));
+				console.info("INFO: ["+ logDatetime +"] Creative "+ banner.AdCampaignBannerPreviewID +" with cat["+ banner.IABAudienceCategory +"] doesn't pass to imp cat request ", JSON.stringify(newImp.cat, null, 4));
 				return false;
 			}
 		}
@@ -385,9 +386,10 @@ var bid = function(newImp, biddingQueue, agent) {
 		// -------------------------------
 		// Asign to request imp id
 		banner.impId = newImp.id;
-		banner.auctionId = build.AuctionId(banner.AdCampaignBannerPreviewID);
+		console.error("~~~~~>", newImp);
+		// banner.auctionId = build.AuctionId(banner.AdCampaignBannerPreviewID);
 
-		console.log("TRACK: ["+ new Date() +"] DO BID BANNER ", banner.AdCampaignBannerPreviewID, " of agent: ", agent.user_email);
+		console.log("TRACK: ["+ logDatetime +"] DO BID BANNER ", banner.AdCampaignBannerPreviewID, " of agent: ", agent.user_email);
 
 		// Start do bidding
 		doBid(banner, biddingQueue);
