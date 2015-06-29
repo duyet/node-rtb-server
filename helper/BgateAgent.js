@@ -6,6 +6,7 @@ var Promise = require('es6-promise').Promise;
 
 var config = require('../config/config');
 var Model = require('../config/db').Model;
+var ClickLog = require('../config/mongodb').ClickLog;
 
 var mysql      = require('mysql');
 var connection = mysql.createConnection(config.db);
@@ -52,12 +53,15 @@ var BGateAgent = {
 						Company 				: row.Company,
 						PartnerType 			: row.PartnerType,
 						Balance 				: row.Balance,
+						CurrentSpend 			: 0,
 						banner 					: [], 
 						campaign 				: []
 					};
 
-					// Load campaign
+					// TODO: Calc currentSpend from Mongodb
 					
+
+					// Load campaign
 					var agentCampaign = [];
 					for (var jjj in rows) {
 						if (rows[jjj].user_id == row.user_id) {
@@ -129,7 +133,6 @@ var BGateAgent = {
 									Height: _rowBanner.Height,
 									Width: _rowBanner.Width,
 									Weight: _rowBanner.Weight,
-									BidAmount: _rowBanner.BidAmount,
 									DeliveryType: _rowBanner.DeliveryType,
 									LandingPageTLD: _rowBanner.LandingPageTLD,
 									ImpressionsCounter: _rowBanner.ImpressionsCounter,
@@ -142,7 +145,11 @@ var BGateAgent = {
 									WentLiveDate: _rowBanner.WentLiveDate, 
 									AdUrl: _rowBanner.AdUrl,
 									Label: _rowBanner.Label,
-									BidType: _rowBanner.BidType,
+									
+									BidType: _rowBanner.BidType, // 1 = CPM, 2 = CPC
+									BidAmount: _rowBanner.BidAmount,
+									BidAmountCPM: _rowBanner.BidAmount,
+
 									TargetDaily: _rowBanner.TargetDaily,
 									TargetMax: _rowBanner.TargetMax,
 									DailyBudget: _rowBanner.DailyBudget,
@@ -214,7 +221,7 @@ var passSelfBannerFilter = function(banner) {
 	var campaign = getCampaignById(banner.AdCampaignID);
 	if (!campaign) {
 		// not found campaign, opp
-		console.error("passSelfBannerFilter: not found campaign ", banner.AdCampaignID);
+		// console.error("passSelfBannerFilter: not found campaign ", banner.AdCampaignID);
 		// return false;
 	}
 	if (!campaign.CampaignActive || campaign.CampaignActive == 0) {
@@ -227,6 +234,16 @@ var passSelfBannerFilter = function(banner) {
 
 var initBannerAttributes = function(banner) {
 	if (!banner) return banner;
+
+	// Convert CPM to CPC
+	if (parseInt(banner.BidType) == 1) {
+		banner.BidAmount = config.cpm_to_cpc_rate * banner.BidAmount;
+	}
+
+	// Delected 
+	if (parseInt(banner.Deleted) == 1) {
+		return false;
+	}	
 
 	if (banner.FrequencyCap == 1) {
 		banner.FrequencyCapCountToday = banner.FrequencyCapCountToday || 0;
