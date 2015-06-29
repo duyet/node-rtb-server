@@ -6,6 +6,14 @@ var BGateAgent = require('../helper/BgateAgent.js');
 var tracker = require('pixel-tracker');
 var ClickLog = require('../config/mongodb').ClickLog;
 var BiddingMapLog = require('../config/mongodb').BiddingMapLog;
+var AdvBanker = require('../config/mongodb').AdvBanker;
+var Model = require('../config/db').Model;
+
+var DemandCustomerInfo = Model.extend({
+	tableName: 'DemandCustomerInfo',
+	idAttribute: 'DemandCustomerInfoID'
+});
+
 
 /*
 	http://ptnhttt.uit.edu.vn:8899/click_tracker?type=click_tracker&pid=9&
@@ -57,7 +65,6 @@ module.exports.tracker = function(req, res) {
 
 	// TODO: Add prices
 	clickData.Price = 0.0;
-
 	var banner = getBannerById(clickData.AdCampaignBannerID);
 	if (!banner) {
 		console.log("INFO: ["+ new Date() +"] Click tracker can not find info of creative " + clickData.AdCampaignBannerID);
@@ -71,14 +78,17 @@ module.exports.tracker = function(req, res) {
 	var regex = /^http\:\/\/.*/;
 	if (!regex.test(clickData.TargetURL)) clickData.TargetURL = 'http://' + clickData.TargetURL;
 
+	// Update counter in Bgate Agent memory
+	updateClickCounterAndCurrentSpendInAgent(clickData);
+
+	// Update Adv balance
+	updateAgentCurrentSpend(clickData);
+
 	// Call update banner click couter
 	new ClickLog(clickData).save(function(err, model) {
 		if (err) console.error(err);
 		else console.log('[' + new Date() + "] Saved ClickLog id " + model.id + ' {'+ clickData.PublisherAdZoneID +', ' + clickData.AdCampaignBannerID + ', ' + clickData.UserIP +'}');
 	});
-
-	// Update counter in Bgate Agent memory
-	updateBannerClickCounterInAgent(clickData.AdCampaignBannerID);
 	
 	console.info("INFO: ["+ new Date() +"] Redirect to " + clickData.TargetURL);
 	res.redirect(clickData.TargetURL);
@@ -86,21 +96,91 @@ module.exports.tracker = function(req, res) {
 	console.timeEnd("TIMER: Update click tracker data");
 }
 
-var updateBannerClickCounterInAgent = function(bannerId) {
+var updateClickCounterAndCurrentSpendInAgent = function(clickData) {
+	if (!clickData || !clickData.AdCampaignBannerID) return false;
 	if (!BGateAgent && !BGateAgent.agents) return false;
+
+	var bannerId = clickData.AdCampaignBannerID;
 
 	BGateAgent.agents.forEach(function(agent) {
 		if (!agent.banner) return false;
+		var campaignId = [];
+
 		for (var i = 0; i < agent.banner.length; i++) {
 			if (agent.banner[i].AdCampaignBannerPreviewID == bannerId) {
+				// TODO: what's amount here?
+				// By default, @lvduit using bidamount here
+				var amount = agent.banner[i].BidAmount;
+
+				// Update creative Counter
 				agent.banner[i].BidsCounter++;
+
+				// Update creative currentspend
+				agent.banner[i].CurrentSpend += amount;
+				console.error("DEBUG: Update CurrentSpend of Creative [" + bannerId + "]: " + agent.banner[i].CurrentSpend);
+
+				// Check banner out of max
+				if (agent.banner[i].CurrentSpend >= agent.banner[i].MaximumBudget) {
+					console.error("WARN: Creative ["+ agent.banner[i].AdCampaignBannerPreviewID +"] out of current spend, disactive it.");
+					agent.banner[i].Active = 0;
+				}
+
+				// TODO: Check DailyBudget
+
+				// Update AdCampaign current spend
+				for (var j = 0; j < agent.campaign.length; j++) {
+					if (agent.campaign[j].AdCampaignID == agent.banner[i].AdCampaignID) {
+						agent.campaign[j].CampaignCurrentSpend += amount;
+					}
+				}
+
+				// Save log 
+				new AdvBanker({
+					UserID: agent.UserID, 
+					AdCampaignBannerID: agent.banner[i].AdCampaignBannerPreviewID,
+					AdzoneMapBannerId: 0, // TODO: Fix there
+					Price: amount,
+					created: new Date()
+				}).save(function(err, model) {
+					if (err) return console.error(err);
+					console.warn("INFO: ["+ new Date() +"] Adv Banker create transaction [UID: "+ agent.UserID +", Banner: "+ agent.banner[i].AdCampaignBannerPreviewID +", Price: "+ amount +"]");
+				});
+
 				return true;
 			}
 		}
 	});
 
 	return true;
-}
+};
+
+
+var updateAgentCurrentSpend = function(clickData) {
+	// Agent current spend = sum(campaign.currentspend)
+	BGateAgent.agents.forEach(function(agent) {
+		if (!agent.campaign) return false;
+		agent.CurrentSpend = 0.0;
+		agent.campaign.forEach(function(campaign) {
+			agent.CurrentSpend += campaign.CampaignCurrentSpend;
+		});
+
+		console.warn("INFO: ["+ new Date() +"] Update Agent current spend [UID: "+ agent.UserID +", CurrentSpend: "+ agent.CurrentSpend +"]");
+
+		// Check balance 
+		if (agent.CurrentSpend >= agent.Balance) {
+			console.error("WARN: ["+ new Date() +"] Agent ["+ agent.UserID +"] out of balance [CurrentSpend: "+ agent.CurrentSpend +"], disable agent.");
+			agent.user_enabled = 0;
+
+			// Update to MySQL
+			new DemandCustomerInfo({DemandCustomerInfoID: agent.DemandCustomerInfoID})
+			.save({MonthlyCurrentSpen: agent.CurrentSpend}, {patch: true}).then(function(model) {
+				if (model) {
+					console.info("SYNC: Sync Agent to MySQL");
+				}
+			});
+		}
+	});
+};
 
 var getBannerById = function(bannerId) {
 	if (!BGateAgent || !BGateAgent.agents) return false;
