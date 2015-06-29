@@ -1,0 +1,10 @@
+(function(){function adbanner(it
+/**/) {
+var out='<!DOCTYPE html><html><head><script type="text/javascript">window.__BGate = [];window.BGateTracker = window.BGateTracker || [];__BGate.push({version:"1.0.0"});</script><title>Bgate by ISLab</title> <meta charset="UTF-8"> <meta http-equiv="Content-Type" content="text/html; charset=utf-8"><meta name="author" value="Van-Duyet Le" /><meta name="pingback" value="//p.lvduit.com/bgate_project/1.0/desc" /><style>* {margin:0; padding:0; border: 0} .bgateAdmLogo {background: url('+(it.config.bgate_ad_icon)+') no-repeat top left; display: block; width: 35px;height: 20px;z-index: 999;position: absolute;top: 0px;right: 0px;}.bgateAdmLogo:hover {width: 103px; background: url('+(it.config.bgate_ad_icon_hover)+') no-repeat top left;}</style><script type="text/javascript">var scriptCdn = \'./\'; window.__loadBGate = window.__loadBGate || true;</script></head><body><!-- px tracker --><img src="'+( it.impTrackerLink )+'" width="0" height="0" style="display:none" /><!-- / px tracker --><!-- render banner --><div style="position:relative;width:'+( it.banner.Width )+'px;height:'+( it.banner.Height )+'px;"><a href="'+( it.trackerLink )+'" target="_top"><img src="'+( it.banner.AdUrl )+'" width="'+( it.banner.Width )+'" height="'+( it.banner.Height )+'" /></a><a href="'+( it.config.bgate_ad_link || '#' )+'" class="bgateAdmLogo"><span></span></a></div><!-- / render banner --></body></html>';return out;
+}var itself=adbanner, _encodeHTML=(function (doNotSkipEncoded) {
+		var encodeHTMLRules = { "&": "&#38;", "<": "&#60;", ">": "&#62;", '"': "&#34;", "'": "&#39;", "/": "&#47;" },
+			matchHTML = doNotSkipEncoded ? /[&<>"'\/]/g : /&(?!#?\w+;)|<|>|"|'|\//g;
+		return function(code) {
+			return code ? code.toString().replace(matchHTML, function(m) {return encodeHTMLRules[m] || m;}) : "";
+		};
+	}());if(typeof module!=='undefined' && module.exports) module.exports=itself;else if(typeof define==='function')define(function(){return itself;});else {_page.render=_page.render||{};_page.render['adbanner']=itself;}}());

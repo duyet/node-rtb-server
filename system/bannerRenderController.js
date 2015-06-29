@@ -3,6 +3,7 @@
 var config = require('../config/config');
 var BGateAgent = require('../helper/BgateAgent.js');
 var builder = require('../helper/builder.js');
+var render = require('../render');
 
 exports.render = function(req, res, next) {
 	var logDatetime = new Date();
@@ -48,6 +49,7 @@ exports.render = function(req, res, next) {
 					isRendered = true;
 					// res.header("Content-Type", "text/html");
 					return res.send(renderAdContent(banner, null, req.query));
+					//return res.send(render.adbanner({config:config, impTrackerLink: }))
 				}
 			})
 		}
@@ -68,25 +70,15 @@ var renderAdContent = function(banner, trackerLink, reqInfo) {
 
 	var PublisherAdZoneID = parseInt(reqInfo.PublisherAdZoneID) || 0;
 	var impTrackerLink = builder.ImpTrackerUrl(banner, PublisherAdZoneID);
-
 	var trackerLink = trackerLink || builder.ClickTrackerUrl(banner, reqInfo);
 
-	var ad = '<!doctype html>\
-		<html>\
-		<head><title>Bgate by ISLab</title>\
-		<style>* {margin:0; padding:0} .bgateAdmLogo {background: url('+ config.bgate_ad_icon +') no-repeat top left;display: block;width: 35px;height: 20px;z-index: 999;position: absolute;top: 0px;right: 0px;} .bgateAdmLogo:hover {  width: 103px; background: url('+ config.bgate_ad_icon_hover +') no-repeat top left;}</style>\
-		</head>\
-		<body>\
-		<!-- px tracker -->\
-		<img src="'+ impTrackerLink +'" width="0" height="0" style="display:none" />\
-		<div style="position:relative;width:'+ banner.Width +'px;height:'+ banner.Height +'px;">\
-		<a href="'+ trackerLink +'" target=\"_top\"><img src="'+ banner.AdUrl +'" width="'+ banner.Width +'" height="'+ banner.Height +'" /></a>\
-		<a href="'+ config.bgate_ad_link +'" class="bgateAdmLogo"><span></span></a>\
-		</div>\
-		</body>\
-		</html>';
-		
-	return ad;
+	return render.adbanner({
+		config: config, 
+		impTrackerLink: impTrackerLink, 
+		PublisherAdZoneID:PublisherAdZoneID,
+		trackerLink: trackerLink,
+		banner: banner
+	});
 }
 
 

@@ -24,6 +24,12 @@ var fs = require('fs'),
 	multipart = require('connect-multiparty'),
 	db = require('./config/db');
 
+	require("dot").process({
+		global: "_page.render"
+		, destination: __dirname + "/render/"
+		, path: (__dirname + "/templates")
+	});
+
 	console.info("INFO: Init BGate Server");
 	// Initialize express app
 	var app = express();
