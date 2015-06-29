@@ -4,6 +4,7 @@ var config = require('../config/config');
 var BGateAgent = require('../helper/BgateAgent.js');
 
 exports.agent = function(req, res) {
+	console.log("REQ: ["+ new Date() +"] Fetch Agent info from REST API");
 	if (!req.query || !req.query.s || req.query.s != config.trigger_token || !BGateAgent) {
 		return res.status(404).send("Not Found");
 	}
@@ -11,11 +12,8 @@ exports.agent = function(req, res) {
 	var agents = [];
 	for (var i = 0; i < BGateAgent.agents.length; i++) {
 		var current = BGateAgent.agents[i];
-		agents.push({
-			user_id: current.user_id,
-			user_email: current.user_email,
-			banner: current.banner.length
-		});
+		//current.banner = current.banner.length;
+		agents.push(current);
 	}
 
 	res.json(agents);
@@ -30,6 +28,7 @@ exports.agent_all = function(req, res) {
 };
 
 exports.banner = function(req, res) {
+	console.log("REQ: ["+ new Date() +"] Fetch Banner info from REST API");
 	if (!req.query || !req.query.s || req.query.s != config.trigger_token || !BGateAgent) {
 		return res.status(404).send("Not Found");
 	}
