@@ -1,6 +1,6 @@
 'use strict';
 
-console.info("\n\n\n\n................................................\n\n\n");
+console.info("\n\n\n\n................................................");
 
 // PMX for HTTP Analysic
 require('pmx').init();
@@ -11,7 +11,6 @@ var fs = require('fs'),
 	morgan = require('morgan'),
 	bodyParser = require('body-parser'),
 	session = require('express-session'),
-	sessionStore = require('express-mysql-session'),
 	expressValidator = require('express-validator'),
 	methodOverride = require('method-override'),
 	cookieParser = require('cookie-parser'),
@@ -152,5 +151,6 @@ var fs = require('fs'),
 
 
 console.info("INFO: Listening in port " + config.port + " ...");
+console.error("WARN: Developer mode!!!");
 console.info("==================== Ready to connect =================\n");
 http.createServer(app).listen(config.port);
