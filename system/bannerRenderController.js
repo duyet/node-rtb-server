@@ -5,7 +5,13 @@ var BGateAgent = require('../helper/BgateAgent.js');
 var builder = require('../helper/builder.js');
 var render = require('../render');
 
-exports.render = function(req, res, next) {
+/**
+ * Action for render ad content
+ *
+ * @param req 
+ * @param res 
+ */
+exports.render = function(req, res) {
 	var logDatetime = new Date();
 	console.log("=================== AD BANNER RENDER ===================");
 	
@@ -62,6 +68,13 @@ exports.render = function(req, res, next) {
 	// next();
 };
 
+/**
+ * Render Ad Content
+ *
+ * @param banner 
+ * @param trackerLink 
+ * @param reqInfo 
+ */
 var renderAdContent = function(banner, trackerLink, reqInfo) {
 	if (!banner) return '';
 	
