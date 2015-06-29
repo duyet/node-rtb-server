@@ -198,7 +198,7 @@ exports.bids = function(req, res) {
 				PublisherAdZoneID: bidReq.site.id, 
 				AdCampaignBannerID: bidding.AdCampaignBannerPreviewID,
 				Price:  bidding.BidAmount || 0.0,
-				status: '',
+				status: 'error', 
 				created: logDatetime
 			}).save(function(err, model) {
 				if (err) console.error(err);
@@ -219,7 +219,7 @@ var generateEmptyResponse = function(res) {
 	isBidTimeout = true; // Generate response, also mean timeout for bidding
 	console.log('TRACK: No response.');
 	console.info("============================================================");
-	return res.status(204).send();
+	return res.status(204).send().end();
 }
 
 var generateBidResponse = function(res, bidReq, bidRes) {
@@ -344,11 +344,17 @@ var checkAdzoneId = function(adzoneId) {
 
 var bid = function(newImp, biddingQueue, agent) {
 	var logDatetime = new Date();
-	console.log("TRACK: Run Agent ", agent.user_email);
-
+	
 	if (isBidTimeout) return false; // Bidding timeout
 	if (!agent || !newImp) return false;
 	if (!agent.banner) return false;
+
+	if (! agent.user_enabled || parseInt(agent.user_enabled) == 0) {
+		console.info("INFO: ["+ logDatetime +"] Agent ["+ agent.UserID +"] is disactive, skip.");
+		return false;
+	}
+
+	console.log("TRACK: Run Agent " + agent.user_email + " ["+ agent.UserID +"]");
 
 	agent.banner.forEach(function(banner) {
 		// Banner is disactive 
