@@ -282,7 +282,7 @@ var generateBidResponse = function(res, bidReq, bidRes) {
 					crid: bid_res.AdCampaignBannerPreviewID.toString(),
 
 					// Campaign ID or similar that appears within the ad markup.
-					cid: bid_res.AdCampaignPreviewID.toString(),
+					cid: bid_res.AdCampaignID.toString(),
 
 					// Win Notice
 					nurl: build.WinBidUrl(bidReq, bid_res), 
@@ -351,6 +351,18 @@ var bid = function(newImp, biddingQueue, agent) {
 	if (!agent.banner) return false;
 
 	agent.banner.forEach(function(banner) {
+		// Banner is disactive 
+		if (!banner.Active || banner.Active == 0) {
+			console.info("INFO: ["+ logDatetime +"] Creative "+ banner.AdCampaignBannerPreviewID +" is disactive, skip me.");
+			return false;
+		}
+
+		// Check bid type 
+		if (banner.BidType) {
+			banner.BidType = parseInt(banner.BidType) != 1 ? 2 : 1;
+			console.info("INFO: ["+ logDatetime +"] Creative "+ banner.AdCampaignBannerPreviewID +" bidtype: ", config.bid_type[banner.BidType]);
+		}
+
 		// Check bid floor
 		if (banner.BidAmount < newImp.bidfloor) return false;
 
