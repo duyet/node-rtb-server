@@ -43,6 +43,7 @@ var BGateAgent = {
 				if (!isExists) {
 					var agent = {
 						UserID 					: row.user_id,
+						DemandCustomerInfoID 	: row.DemandCustomerInfoID,
 						user_email 				: row.user_email,
 						user_enabled 			: row.user_enabled,
 						user_verified 			: row.user_verified,
@@ -53,13 +54,17 @@ var BGateAgent = {
 						Company 				: row.Company,
 						PartnerType 			: row.PartnerType,
 						Balance 				: row.Balance,
-						CurrentSpend 			: 0,
+						CurrentSpend 			: row.MonthlyCurrentSpen,
 						banner 					: [], 
 						campaign 				: []
 					};
 
 					// TODO: Calc currentSpend from Mongodb
 					
+					// Disable agent if balance low
+					if (agent.Balance <= config.agentMinBalanceToDisable) {
+						agent.user_enabled = 0;
+					}
 
 					// Load campaign
 					var agentCampaign = [];
@@ -135,10 +140,15 @@ var BGateAgent = {
 									Weight: _rowBanner.Weight,
 									DeliveryType: _rowBanner.DeliveryType,
 									LandingPageTLD: _rowBanner.LandingPageTLD,
-									ImpressionsCounter: _rowBanner.ImpressionsCounter,
+									
 									BidsCounter: _rowBanner.BidsCounter,
+									ImpressionsCounter: _rowBanner.ImpressionsCounter,
+									
 									CurrentSpend: _rowBanner.CurrentSpend,
-									Active: _rowBanner.Active,
+									MaximumBudget: _rowBanner.MaximumBudget,
+
+									Active: _rowBanner.Active,  // Banner Active status
+
 									DateCreated: _rowBanner.DateCreated,
 									DateUpdated: _rowBanner.DateUpdated,
 									ChangeWentLive: _rowBanner.ChangeWentLive,
@@ -153,7 +163,7 @@ var BGateAgent = {
 									TargetDaily: _rowBanner.TargetDaily,
 									TargetMax: _rowBanner.TargetMax,
 									DailyBudget: _rowBanner.DailyBudget,
-									MaximumBudget: _rowBanner.MaximumBudget,
+
 									IABAudienceCategory: _rowBanner.IABAudienceCategory,
 									GEOCountry: _rowBanner.GEOCountry, 
 									TimeZone: _rowBanner.TimeZone,
