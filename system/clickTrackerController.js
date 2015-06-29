@@ -58,6 +58,12 @@ module.exports.tracker = function(req, res) {
 	// TODO: Add prices
 	clickData.Price = 0.0;
 
+	var banner = getBannerById(clickData.AdCampaignBannerID);
+	if (!banner) {
+		console.log("INFO: ["+ new Date() +"] Click tracker can not find info of creative " + clickData.AdCampaignBannerID);
+	}
+	clickData.Price = banner.BidAmount;
+
 	// Created time
 	clickData.created = new Date();
 
@@ -95,3 +101,26 @@ var updateBannerClickCounterInAgent = function(bannerId) {
 
 	return true;
 }
+
+var getBannerById = function(bannerId) {
+	if (!BGateAgent || !BGateAgent.agents) return false;
+	var isFounded = false;
+	var result = {};
+
+	BGateAgent.agents.forEach(function(agent) {
+		// console.error(agent);
+		if (isFounded) return false;
+		if (!agent.banner) return false;
+
+		agent.banner.forEach(function(banner) {
+			if (isFounded) return false;
+			if (banner.AdCampaignBannerPreviewID == bannerId) {
+				isFounded = true;
+				result = banner;
+			}
+		});
+	});
+
+	if (isFounded) return result;
+	return false;
+};
