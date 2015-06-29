@@ -188,7 +188,11 @@ var BGateAgent = {
 
 			if (next) next();
 		});
-	}
+	}, 
+
+	updateCampaignStatus: updateCampaignStatus,
+	updateBannerStatus: updateBannerStatus,
+	getBannerById: getBannerById
 };
 
 
@@ -254,7 +258,11 @@ var initCampainAttributes = function(campaign) {
 	return campaign;
 }
 
-// ----------------
+// =====================================================================
+// HELPER FUNCTION
+// =====================================================================
+// Get Campaign by ID 
+// TODO: Duyet, you must to learning hard about async in Nodejs =="
 var getCampaignById = function(campaignId) {
 	if (!BGateAgent || !BGateAgent.agents) return false;
 	var isFounded = false;
@@ -276,11 +284,58 @@ var getCampaignById = function(campaignId) {
 
 	if (isFounded) return result;
 	return false;
+};
+
+// Get banner by ID 
+var getBannerById = function(bannerId) {
+	if (!BGateAgent || !BGateAgent.agents) return false;
+	var isFounded = false;
+	var result = {};
+
+	BGateAgent.agents.forEach(function(agent) {
+		// console.error(agent);
+		if (isFounded) return false;
+		if (!agent.banner) return false;
+
+		agent.banner.forEach(function(banner) {
+			if (isFounded) return false;
+			if (banner.AdCampaignBannerPreviewID == bannerId) {
+				isFounded = true;
+				result = banner;
+			}
+		});
+	});
+
+	if (isFounded) return result;
+	return false;
+};
+
+// ====================================================================
+// ====================================================================
+var updateCampaignStatus = function(updateToMySql) {
+	if (!BGateAgent || !BGateAgent.agents) return false;
+
+	var updateToMySql = updateToMySql || true;
+};
+
+var updateBannerStatus = function(updateToMySql) {
+	if (!BGateAgent || !BGateAgent.agents) return false;
+
+	var updateToMySql = updateToMySql || true;
+
+	BGateAgent.agents.forEach(function(agent, agentId) {
+		if (!agent || !agent.campaign) return false;
+		agent.campaign.forEach(function(campaign) {
+			// If my campaign is disactive, disactive all banner of me		
+			// BGateAgent.agents[agentId].
+		});
+	});
+
 }
 
 
 BGateAgent.init(function() {
-	if (1 == 1) {
+	if (config.debug) {
 		setTimeout(function() {
 			require('fs').writeFile("bgate_agent.txt", JSON.stringify(BGateAgent.agents, null, 4), null);
 		}, 2000);
