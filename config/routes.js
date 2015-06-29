@@ -35,8 +35,9 @@ module.exports = function(app) {
 	app.route(routePath.click_tracker)
 		.get(clickTracker.tracker);
 
+	// Win notice
 	app.route(routePath.win)
-		.get(winNotice.index);
+		.all(winNotice.index);
 
 	// Banner render
 	app.route(routePath.banner_render)
