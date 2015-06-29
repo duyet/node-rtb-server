@@ -28,9 +28,15 @@ exports.tracker = function(req, res) {
 	    	AdCampaignBannerID : result.AdCampaignBannerID || 0,
 	    	UserIP : result.geo.ip || '',
 	    	Country : JSON.stringify(result.language) || '',
-	    	Price : result.Price || 0.0,
+	    	Price : 0.0,
 	    	created: new Date()
 	    };
+
+    	var banner = getBannerById(data.AdCampaignBannerID);
+		if (!banner) {
+			console.log("INFO: ["+ new Date() +"] Click tracker can not find info of creative " + banner.AdCampaignBannerID);
+		}
+		data.Price = banner.BidAmount;
 
 		if (lastImp) {
 			if (
@@ -45,8 +51,8 @@ exports.tracker = function(req, res) {
 
 		lastImp = data;
 
-		// Update counter in Bgate Agent 
-		updateBannerImpCounterInAgent(data.PublisherAdZoneID);
+		// Update counter for creative and campaign in Bgate Agent 
+		updateImpCounterInAgent(data.PublisherAdZoneID);
 
 		// Update counter in DB
 	    if (!data.PublisherAdZoneID || !data.AdCampaignBannerID) {
@@ -55,24 +61,44 @@ exports.tracker = function(req, res) {
 	    	new ImpLog(data).save(function(err, model) {
 	    		if (err) console.error(err);
 	    		else console.log('[' + new Date() + "] Saved ImpLog id " + model.id + ' {'+ data.PublisherAdZoneID +', '+ ', ' + data.AdCampaignBannerID + ', ' + data.UserIP +'}');
-	    	})
+	    	});
 	    }
-
-	    // Finish
 	});
 
 	res.header('Content-Type', 'image/gif');
 	return tracker.middleware(req, res);
 };
 
-var updateBannerImpCounterInAgent = function(bannerId) {
+var updateImpCounterInAgent = function(bannerId) {
 	if (!BGateAgent && !BGateAgent.agents) return false;
 
 	BGateAgent.agents.forEach(function(agent) {
 		if (!agent.banner) return false;
 		for (var i = 0; i < agent.banner.length; i++) {
 			if (agent.banner[i].AdCampaignBannerPreviewID == bannerId) {
+				// Update banner counter
 				agent.banner[i].ImpressionsCounter++;
+
+				// Update campagin counter
+				for (var j = 0; j < agent.campaign.length; j++) {
+					if (agent.campaign[j].AdCampaignID == agent.banner[i].AdCampaignID) {
+						agent.campaign[j].CampaignImpressionsCounter++;
+
+						// TODO: Check max impression of agent
+						if (agent.campaign[j].CampaignImpressionsCounter >= agent.campaign[j].MaxImpressions) {
+							console.error("WARN: Campaign ["+ agent.campaign[j].AdCampaignID +"] out of max expression ["+ agent.campaign[j].MaxImpressions +"], disable this campaign.");
+							agent.campaign[j].Active = 0;
+							// Disable all banner of this campaign
+							for (var ii = 0; ii < agent.banner.length; ii++) {
+								if (agent.banner[ii].AdCampaignID == agent.campaign[j].AdCampaignID) {
+									agent.banner[ii].Active = 0;
+									console.error("WARN: Campaign ["+ agent.campaign[j].AdCampaignID +"] out of max expression ["+ agent.campaign[j].MaxImpressions +"], disable banner ["+ agent.banner[ii].AdCampaignBannerPreviewID +"].");
+								}
+							}
+						}
+					}
+				}
+
 				return true;
 			}
 		}
@@ -80,3 +106,26 @@ var updateBannerImpCounterInAgent = function(bannerId) {
 
 	return true;
 }
+
+var getBannerById = function(bannerId) {
+	if (!BGateAgent || !BGateAgent.agents) return false;
+	var isFounded = false;
+	var result = {};
+
+	BGateAgent.agents.forEach(function(agent) {
+		// console.error(agent);
+		if (isFounded) return false;
+		if (!agent.banner) return false;
+
+		agent.banner.forEach(function(banner) {
+			if (isFounded) return false;
+			if (banner.AdCampaignBannerPreviewID == bannerId) {
+				isFounded = true;
+				result = banner;
+			}
+		});
+	});
+
+	if (isFounded) return result;
+	return false;
+};
