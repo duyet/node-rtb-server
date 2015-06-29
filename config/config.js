@@ -63,6 +63,12 @@ module.exports = {
 	// Bid type 
 	bid_type: [
 		'', 'CPM', 'CPC'
-	]
+	],
+
+	// CPM to CPC rate 
+	cpm_to_cpc_rate: (10 / 1000),
+
+	// Min balance to disable agent
+	agentMinBalanceToDisable: 0.01,
 }
 
