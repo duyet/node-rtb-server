@@ -22,11 +22,13 @@ mongoose.connect(connectString, function(err) {
 var ImpLog = mongoose.model('ImpLog', { impId: String, PublisherAdZoneID: Number, AdCampaignBannerID: Number, UserIP: String, Country: String, Price: Number, created: Date });
 var ClickLog = mongoose.model('ClickLog', { impId: String, PublisherAdZoneID: Number, AdCampaignBannerID: Number, TargetURL: String, UserIP: String, Country: String, Price: Number, created: Date });
 var BiddingMapLog = mongoose.model('BidddingMapLog', {impId: String, AdzoneMapBannerId: String, PublisherAdZoneID: Number, AdCampaignBannerID: Number, Price: Number, status: String, created: Date})
+var AdvBanker = mongoose.model('AdvBanker', { UserID: Number, AdCampaignBannerID: Number, AdzoneMapBannerId: String, Price: Number, created: Date });
 
 // ===================================================
 
 module.exports 	= {
 	ImpLog: ImpLog,
 	ClickLog: ClickLog,
-	BiddingMapLog: BiddingMapLog
+	BiddingMapLog: BiddingMapLog,
+	AdvBanker: AdvBanker
 };
