@@ -110,17 +110,21 @@ var updateClickCounterAndCurrentSpendInAgent = function(clickData) {
 			if (agent.banner[i].AdCampaignBannerPreviewID == bannerId) {
 				// TODO: what's amount here?
 				// By default, @lvduit using bidamount here
-				var amount = agent.banner[i].BidAmount;
+				//var amount = agent.banner[i].BidAmount;
+				var amount = 0;
+				if (parseInt(agent.banner[i].BidType) == 1) {
+					amount = agent.banner[i].BidAmount;
+				}
 
 				// Update creative Counter
-				agent.banner[i].BidsCounter++;
+				agent.banner[i].ClickCounter++;
 
 				// Update creative currentspend
 				agent.banner[i].CurrentSpend += amount;
 				console.error("DEBUG: Update CurrentSpend of Creative [" + bannerId + "]: " + agent.banner[i].CurrentSpend);
 
 				// Check banner out of max
-				if (agent.banner[i].CurrentSpend >= agent.banner[i].MaximumBudget) {
+				if (agent.banner[i].CurrentSpend >= agent.banner[i].MaximumBudget && agent.banner[i].MaximumBudget > 0) {
 					console.error("WARN: Creative ["+ agent.banner[i].AdCampaignBannerPreviewID +"] out of current spend, disactive it.");
 					agent.banner[i].Active = 0;
 				}
