@@ -68,12 +68,12 @@ exports.index = function(req, res) {
 			if (row.AdCampaignBannerID == crid) { // he win
 				row.status = 'win';
 			}
-			row.save(function(err) {
+			row.save(function(err, model) {
 				if (err) {
 					console.error("ERR: ["+ logDatetime +"] ["+ row.AdzoneMapBannerId +"] Can not update bidding mapper status.");
 				}
 
-				console.log("INFO: ["+ logDatetime +"] ["+ row.AdzoneMapBannerId +"] Updated bidding mapper status.");
+				console.log("INFO: ["+ logDatetime +"] ["+ row.AdzoneMapBannerId +"] Updated bidding ["+ model._id +"] status ["+ model.status +"].");
 			});
 
 		});
