@@ -82,8 +82,8 @@ module.exports = function(app) {
 	// SYNC
 	// ========================================
 	// Sync banenr 
-	app.route(routePath.sync_banner)
-		.get(sync.banner);
+	app.route(routePath.sync_route)
+		.get(sync.sync);
 
 	if (config.debug) {
 		var debugController = require('../system/debugController.js');

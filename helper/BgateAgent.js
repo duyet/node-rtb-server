@@ -15,6 +15,7 @@ connection.connect();
 var BGateAgent = {
 	agents : [],
 	listBanner : [],
+	campaignSkip: [],
 
 	init : function(next) {
 		console.info("INFO: ["+ new Date() +"] Init BGate Agent Data.");
@@ -46,6 +47,7 @@ var BGateAgent = {
 						DemandCustomerInfoID 	: row.DemandCustomerInfoID,
 						user_email 				: row.user_email,
 						user_enabled 			: row.user_enabled,
+						user_status 			: "",
 						user_verified 			: row.user_verified,
 						user_agreement_accepted	: row.user_agreement_accepted,
 						locale					: row.locale,
@@ -63,7 +65,9 @@ var BGateAgent = {
 					
 					// Disable agent if balance low
 					if (agent.Balance <= config.agentMinBalanceToDisable) {
+						console.error("WARN: Agent ["+ agent.UserID +"] balance ($"+ agent.Balance +") is below an amount that bgate system specify, so disactive.");
 						agent.user_enabled = 0;
+						agent.user_status = "Balance ($"+ agent.Balance +") is below an amount that bgate system specify";
 					}
 
 					// Load campaign
@@ -75,7 +79,13 @@ var BGateAgent = {
 								if (_isExistsCampaign == true) return false;
 								if (campaign.AdCampaignID == rows[jjj].AdCampaignID) _isExistsCampaign = true;
 							});
-
+							if (!_isExistsCampaign) {
+								BGateAgent.campaignSkip.forEach(function(skipCampaign) {
+									// Exists in skip campaign list
+									if (skipCampaign == rows[jjj].AdCampaignID) _isExistsCampaign = true;
+								});	
+							}
+							
 							if (!_isExistsCampaign) {
 								var _rowCampaign = rows[jjj];
 
@@ -91,13 +101,14 @@ var BGateAgent = {
 									CampaignMaxSpend 				: _rowCampaign.CampaignMaxSpend,
 									CampaignCPMTarget 				: _rowCampaign.CampaignCPMTarget,
 									CampaignCPMTargetValue			: _rowCampaign.CampaignCPMTargetValue,
-									CampaignActive 					: _rowCampaign.CampaignActive,
-									CampaignDeleted 				: _rowCampaign.CampaignDeleted,
+									// CampaignActive 					: _rowCampaign.CampaignActive,
 									CampaignDateCreated 			: _rowCampaign.CampaignDateCreated,
 									CampaignDateUpdated 			: _rowCampaign.CampaignDateUpdated,
 									CampaignChangeWentLive 			: _rowCampaign.CampaignChangeWentLive,
 									CampaignWentLiveDate 			: _rowCampaign.CampaignWentLiveDate,
-									CampaignApproval 				: _rowCampaign.CampaignApproval
+									
+									CampaignApproval 				: _rowCampaign.CampaignApproval,
+									CampaignDeleted 				: _rowCampaign.CampaignDeleted,
 								});
 
 								if (passSelfCampaignFilter(campaign)) {
@@ -142,6 +153,7 @@ var BGateAgent = {
 									LandingPageTLD: _rowBanner.LandingPageTLD,
 									
 									BidsCounter: _rowBanner.BidsCounter,
+									ClickCounter: _rowBanner.ClickCounter,
 									ImpressionsCounter: _rowBanner.ImpressionsCounter,
 									
 									CurrentSpend: _rowBanner.CurrentSpend,
@@ -217,11 +229,17 @@ var BGateAgent = {
 var passSelfBannerFilter = function(banner) {
 	if (!banner) return false;
 
+	// Deny banner CPC
+	if (banner.BidType != config.bid_type.CPM) {
+		console.error("WARN: BGate now accept Bid CPM Only, disable creative ["+ banner.AdCampaignBannerPreviewID +"]");
+		return false;
+	}
+
+	// Banner from [date] to [date]
 	if (banner.StartDate) {
 		var startDate = moment(banner.StartDate);
 		if (moment().diff(startDate, "seconds") < 0) return false; 
 	}
-
 	if (banner.EndDate) {
 		var endDate = moment(banner.EndDate);
 		if (moment().diff(endDate, "seconds") > 0) return false; 
@@ -234,9 +252,10 @@ var passSelfBannerFilter = function(banner) {
 		// console.error("passSelfBannerFilter: not found campaign ", banner.AdCampaignID);
 		// return false;
 	}
-	if (!campaign.CampaignActive || campaign.CampaignActive == 0) {
+	else if (!campaign.CampaignActive || campaign.CampaignActive == 0) {
 		banner.BannerActive = 0;
 		// If return false here ==> do not add this banner to agents
+		return false;
 	}
 
 	return true;
@@ -245,9 +264,13 @@ var passSelfBannerFilter = function(banner) {
 var initBannerAttributes = function(banner) {
 	if (!banner) return banner;
 
+	banner.BidType = parseInt(banner.BidType);
+
 	// Convert CPM to CPC
 	if (parseInt(banner.BidType) == 1) {
-		banner.BidAmount = config.cpm_to_cpc_rate * banner.BidAmount;
+		// banner.BidAmount = config.cpm_to_cpc_rate * banner.BidAmount;
+		banner.BidAmountCPM = banner.BidAmount;
+		banner.BidAmount = banner.BidAmount / 1000;
 	}
 
 	// Delected 
@@ -275,6 +298,28 @@ var initBannerAttributes = function(banner) {
 
 var passSelfCampaignFilter = function(campaign) {
 	// TODO: Check campagin conditions
+
+
+	//CampaignApproval 				: _rowCampaign.CampaignApproval,
+	//CampaignDeleted 				: _rowCampaign.CampaignDeleted,
+
+	// CampaignApproval
+	// Approval: "0" => Banned, "1" => Stop, "2" => Running, "3" => Auto Approved
+	campaign.CampaignApproval = parseInt(campaign.CampaignApproval);
+	if (campaign.CampaignApproval != 2 || campaign.CampaignApproval != 3) {
+		BGateAgent.campaignSkip.push(campaign.AdCampaignID);
+		console.error("WARN: Campaign ["+ campaign.AdCampaignID +"] was banned or stopped, skip.")
+		return false;
+	}
+
+	// CampaignDeleted
+	// Deleted: "0" => Exist, "1" => Deleted
+	campaign.CampaignDeleted = parseInt(campaign.CampaignDeleted);
+	if (campaign.CampaignDeleted != 0) {
+		BGateAgent.campaignSkip.push(campaign.AdCampaignID);
+		console.error("WARN: Campaign ["+ campaign.AdCampaignID +"] was deleted, skip.")
+		return false;
+	}
 
 	return true;
 }
