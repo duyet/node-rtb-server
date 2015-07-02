@@ -52,18 +52,18 @@ module.exports = {
 		trigger_reset_all: '/trigger/refresh/all',
 
 		// Sync
-		sync_banner: '/sync/banner',
+		sync_route: '/sync/sync',
 	}, 
 
-	//bgate_ad_icon: '//3.bp.blogspot.com/-FWZ8ppmaUpk/VYQ9Oe6h6OI/AAAAAAAACjU/qyGoayEtu58/s1600/adxlogo-2.png',
 	bgate_ad_icon: '//3.bp.blogspot.com/-7aQF3mBOWPU/VY67czg2QmI/AAAAAAAACkk/FCBfavh1iI0/s1600/adxlogo-2.png',
 	bgate_ad_icon_hover: '//3.bp.blogspot.com/-r87fGsSXmWA/VYfab3YV-0I/AAAAAAAACjs/hn-ylyS1Kzk/s1600/adxlogo-2-hover.png',
 	bgate_ad_link: 'http://ads.bda.com.vn',
 
 	// Bid type 
-	bid_type: [
-		'', 'CPM', 'CPC'
-	],
+	bid_type: {
+		CPM: 1,
+		CPC: 2
+	},
 
 	// CPM to CPC rate 
 	cpm_to_cpc_rate: (10 / 1000),
