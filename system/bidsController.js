@@ -141,7 +141,7 @@ exports.bids = function(req, res) {
 		newImp.cat = bidReq.site.cat;
 
 		// Check adzone 
-		var adzoneInfo = getAdzoneInfo(newImp.id);
+		var adzoneInfo = getAdzone(newImp.id);
 		// console.error("adzoneInfo", adzoneInfo);
 		if (adzoneInfo == null) {
 			isBreak = true; isError = true;
@@ -149,6 +149,9 @@ exports.bids = function(req, res) {
 			res.status(400).end();
 			return false;
 		}
+
+		// Adzone Bid req counter 
+		adzoneInfo.TotalRequests++;
 
 		bidReq.imp.push(newImp);
 
@@ -323,7 +326,7 @@ var filterBannerResult = function(winBanners) {
 	return winBanners[0];
 };
 
-var getAdzoneInfo = function(adzoneId) {
+var getAdzone = function(adzoneId) {
 	adzoneId = parseInt(adzoneId);
 
 	if (!Publisher || !Publisher.data) return null;
@@ -333,12 +336,15 @@ var getAdzoneInfo = function(adzoneId) {
 	var isBreak = false;
 	var result = null;
 	Publisher.data.forEach(function(pub) {
-		if (isBreak) return false;
+		if (isBreak || !pub.Adzone) return false;
 
-		if (pub.PublisherAdZoneID == adzoneId) {
-			result = pub;
-			isBreak = true;
-		}
+		pub.Adzone.forEach(function(adzone) {
+			if (adzone.PublisherAdZoneID == adzoneId) {
+				result = adzone;
+				isBreak = true;
+			}
+		})
+
 	});
 
 	// console.info("Checking Adzone id ", adzoneId, ": ", result);
@@ -374,7 +380,12 @@ var bid = function(newImp, biddingQueue, agent) {
 		//}
 
 		// Check bid floor
-		if (newImp.bidfloor && newImp.bidfloor > 0 && banner.BidAmount < newImp.bidfloor) return false;
+		if (newImp.bidfloor && newImp.bidfloor > 0 
+			&& (
+				(banner.BidType != config.bid_type.CPM && banner.BidAmountCPM < newImp.bidfloor) 
+				|| (banner.BidAmount < newImp.bidfloor)
+			)
+		) return false;
 
 		// Check width and height
 		if (banner.Width != newImp.banner.width || banner.Height != newImp.banner.height) return false;
@@ -439,7 +450,7 @@ var doBid = function(banner, biddingQueue) {
 }
 
 var getBidType = function(bidTypeId) {
-	if (banner.BidType == config.bid_type.CPM) return 'CPM';
+	if (bidTypeId == config.bid_type.CPM) return 'CPM';
 
 	return 'CPC';
 }
