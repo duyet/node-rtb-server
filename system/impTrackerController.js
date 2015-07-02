@@ -4,6 +4,7 @@ var Model = require('../config/db').Model;
 var tracker = require('pixel-tracker');
 var ImpLog = require('../config/mongodb').ImpLog;
 var BGateAgent = require('../helper/BgateAgent');
+var BGateAgent = require('../helper/Publisher');
 
 // ==================================
 // DATABASE CONSTRUCT
@@ -17,7 +18,6 @@ var lastImp = {
 	Country: '',
 };
 
-// TODO: Fix duplicate impTracker
 exports.tracker = function(req, res) {
 	tracker.use(function (error, result) {
 	    // console.log(JSON.stringify(result, null, 2));
@@ -34,7 +34,7 @@ exports.tracker = function(req, res) {
 
     	var banner = getBannerById(data.AdCampaignBannerID);
 		if (!banner) {
-			console.log("INFO: ["+ new Date() +"] Click tracker can not find info of creative " + banner.AdCampaignBannerID);
+			console.log("INFO: ["+ new Date() +"] Click tracker can not find info of creative [" + banner.AdCampaignBannerID + "]");
 		}
 		data.Price = banner.BidAmount;
 
@@ -52,7 +52,7 @@ exports.tracker = function(req, res) {
 		lastImp = data;
 
 		// Update counter for creative and campaign in Bgate Agent 
-		updateImpCounterInAgent(data.PublisherAdZoneID);
+		updateImpCounterInAgent(data.AdCampaignBannerID);
 
 		// Update counter in DB
 	    if (!data.PublisherAdZoneID || !data.AdCampaignBannerID) {
@@ -60,7 +60,7 @@ exports.tracker = function(req, res) {
 	    } else {
 	    	new ImpLog(data).save(function(err, model) {
 	    		if (err) console.error(err);
-	    		else console.log('[' + new Date() + "] Saved ImpLog id " + model.id + ' {'+ data.PublisherAdZoneID +', '+ ', ' + data.AdCampaignBannerID + ', ' + data.UserIP +'}');
+	    		else console.info('INFO: [' + new Date() + "] Saved ImpLog [" + model.id + '] {['+ data.PublisherAdZoneID +'], [' + data.AdCampaignBannerID + '], [' + data.UserIP +']}');
 	    	});
 	    }
 	});
