@@ -1,5 +1,6 @@
 'use strict';
 
+var config = require('../config/config');
 var Model = require('../config/db').Model;
 var tracker = require('pixel-tracker');
 var ImpLog = require('../config/mongodb').ImpLog;
@@ -52,7 +53,7 @@ exports.tracker = function(req, res) {
 		lastImp = data;
 
 		// Update counter for creative and campaign in Bgate Agent 
-		updateImpCounterInBGateAgent(data.AdCampaignBannerID);
+		updateImpCounterInBGateAgent(data.AdCampaignBannerID, data.Price);
 
 		// Update counter for adzone in Publisher Agent
 		updateCounterInPublisherAgent(data.PublisherAdZoneID, data.Price);
@@ -72,7 +73,7 @@ exports.tracker = function(req, res) {
 	return tracker.middleware(req, res);
 };
 
-var updateImpCounterInBGateAgent = function(bannerId) {
+var updateImpCounterInBGateAgent = function(bannerId, price) {
 	if (!BGateAgent && !BGateAgent.agents) return false;
 
 	BGateAgent.agents.forEach(function(agent) {
@@ -81,6 +82,11 @@ var updateImpCounterInBGateAgent = function(bannerId) {
 			if (agent.banner[i].AdCampaignBannerPreviewID == bannerId) {
 				// Update banner counter
 				agent.banner[i].ImpressionsCounter++;
+
+				// Update current spend 
+				if (agent.banner[i].BidType != config.bid_type.CPM) {
+					agent.banner[i].CurrentSpend += price;
+				}
 
 				// Update campagin counter
 				for (var j = 0; j < agent.campaign.length; j++) {
@@ -124,6 +130,8 @@ var updateCounterInPublisherAgent = function(adzoneId, price) {
 				adzone.TotalAmount += price || 0.0;
 
 				pub.Balance += price || 0.0; // Update Balance
+
+				console.info(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> Current Balance [$"+ pub.Balance +"]");
 
 				updated = true;
 			} 
