@@ -58,7 +58,6 @@ exports.bids = function(req, res) {
 
 	console.info("============================================================");
 	console.info("TRACK: ["+ logDatetime +"] On Bid request");
-
 	// ==================================
 	// VALIDATE BIDS REQUEST
 	// ==================================
@@ -66,11 +65,11 @@ exports.bids = function(req, res) {
 		console.error("ERR: ["+ logDatetime +"] Can not parse bid request");
 		return res.status(500).json("ERR: ["+ logDatetime +"] Can not parse bid request");
 	}
-	if (!req.body.id) {
+	else if (!req.body.id) {
 		console.error("ERR: ["+ logDatetime +"] Missing bid request id.");
 		return res.status(500).json("ERR: ["+ logDatetime +"] Missing bid request id.");
 	}
-	if (!req.body.imp || !_.isArray(req.body.imp)) {
+	else if (!req.body.imp || !_.isArray(req.body.imp)) {
 		console.error("ERR: ["+ logDatetime +"] Missing bid request imp.");
 		return res.status(500).json("ERR: ["+ logDatetime +"] Missing bid request imp.");
 	}
@@ -82,7 +81,8 @@ exports.bids = function(req, res) {
 	if (lastBidId && lastBidId == bidReq.id) {
 		var s = "ERR: ["+ logDatetime +"] "+ lastBidId +" is aldready in process.";
 		console.error(s);
-		return res.status(500).json(s);
+		res.status(500).json(s).end();
+		return false;
 	}
 	lastBidId = bidReq.id;
 
@@ -141,17 +141,20 @@ exports.bids = function(req, res) {
 		newImp.cat = bidReq.site.cat;
 
 		// Check adzone 
-		if (!checkAdzoneId(newImp.id)) {
-			console.error("ERR: ["+ logDatetime +"] Adzone ["+ newImp.id +"] not exists!");
+		var adzoneInfo = getAdzoneInfo(newImp.id);
+		// console.error("adzoneInfo", adzoneInfo);
+		if (adzoneInfo == null) {
 			isBreak = true; isError = true;
-			//res.status(400).send();
+			console.error("ERR: ["+ logDatetime +"] Adzone ["+ newImp.id +"] not exists! Close bidding and send out empty response.");
+			res.status(400).end();
+			return false;
 		}
 
 		bidReq.imp.push(newImp);
 
 		console.log("========= REQUEST "+ newImp.id +" =========");
 		console.log(newImp);
-		console.log("==================================");
+		console.log("===============================");
 
 		// ==================================
 		// PROCESSING BIDDING FOR EACH AGENT
@@ -167,6 +170,7 @@ exports.bids = function(req, res) {
 	// ==================================
 	console.time("TIMER: BIDDNG ...");
 	var biddingTimeout = setTimeout(function() {
+		if (isBreak == true) return false;
 
 		// ==================================
 		// WHO'S WIN?
@@ -217,9 +221,10 @@ exports.bids = function(req, res) {
 
 var generateEmptyResponse = function(res) {
 	isBidTimeout = true; // Generate response, also mean timeout for bidding
-	console.log('TRACK: No response.');
+	res.status(204).send().end();
+
+	console.log(">>>> INFO: ["+ new Date() +"] Generate empty response.");
 	console.info("============================================================");
-	return res.status(204).send().end();
 }
 
 var generateBidResponse = function(res, bidReq, bidRes) {
@@ -228,14 +233,13 @@ var generateBidResponse = function(res, bidReq, bidRes) {
 
 	isBidTimeout = true; // Generate response, also mean timeout for bidding
 	if (!bidRes || !bidReq) {
-		console.log("TRACK: ["+ logDatetime +"] No response.");
+		
 		return generateEmptyResponse(res);
 	}
 
 	//console.log("Bid response data: ", bidRes);
 
 	if (!bidRes.length) {
-		console.log("INFO: ["+ logDatetime +"] Generate empty response.");
 		return generateEmptyResponse(res);
 	}
 
@@ -305,7 +309,7 @@ var generateBidResponse = function(res, bidReq, bidRes) {
 	];
 
 	res.json(bidResponse).end();
-	console.log("SEND BIDDING RESPONSE!!");
+	console.log(">>> ["+ logDatetime +"] SEND BIDDING RESPONSE!!");
 	console.info("============================================================");
 
     console.timeEnd("TIMER: Generate Bid Response");
@@ -319,25 +323,25 @@ var filterBannerResult = function(winBanners) {
 	return winBanners[0];
 };
 
-var checkAdzoneId = function(adzoneId) {
+var getAdzoneInfo = function(adzoneId) {
 	adzoneId = parseInt(adzoneId);
 
-	if (!Publisher || !Publisher.data) return false;
+	if (!Publisher || !Publisher.data) return null;
 
 	//console.info(JSON.stringify(Publisher.data, null, 4));
 
 	var isBreak = false;
-	var result = false;
+	var result = null;
 	Publisher.data.forEach(function(pub) {
 		if (isBreak) return false;
 
 		if (pub.PublisherAdZoneID == adzoneId) {
-			result = true;
+			result = pub;
 			isBreak = true;
 		}
 	});
 
-	console.info("Checking Adzone id ", adzoneId, ": ", result);
+	// console.info("Checking Adzone id ", adzoneId, ": ", result);
 
 	return result;
 }
@@ -364,13 +368,13 @@ var bid = function(newImp, biddingQueue, agent) {
 		}
 
 		// Check bid type 
-		if (banner.BidType) {
-			banner.BidType = parseInt(banner.BidType) != 1 ? 2 : 1;
-			console.info("INFO: ["+ logDatetime +"] Creative "+ banner.AdCampaignBannerPreviewID +" bidtype: ", config.bid_type[banner.BidType]);
-		}
+		//if (banner.BidType) {
+		//	banner.BidType = parseInt(banner.BidType) != 1 ? 2 : 1;
+			// console.info("INFO: ["+ logDatetime +"] Creative "+ banner.AdCampaignBannerPreviewID +" bidtype: ", config.bid_type[banner.BidType]);
+		//}
 
 		// Check bid floor
-		if (banner.BidAmount < newImp.bidfloor) return false;
+		if (newImp.bidfloor && newImp.bidfloor > 0 && banner.BidAmount < newImp.bidfloor) return false;
 
 		// Check width and height
 		if (banner.Width != newImp.banner.width || banner.Height != newImp.banner.height) return false;
@@ -414,10 +418,11 @@ var bid = function(newImp, biddingQueue, agent) {
 		// -------------------------------
 		// Asign to request imp id
 		banner.impId = newImp.id;
-		console.error("~~~~~>", newImp);
-		// banner.auctionId = build.AuctionId(banner.AdCampaignBannerPreviewID);
 
 		console.log("TRACK: ["+ logDatetime +"] DO BID BANNER ", banner.AdCampaignBannerPreviewID, " of agent: ", agent.user_email);
+
+		// Increase bid counter 
+		banner.BidsCounter++;
 
 		// Start do bidding
 		doBid(banner, biddingQueue);
@@ -427,6 +432,14 @@ var bid = function(newImp, biddingQueue, agent) {
 var doBid = function(banner, biddingQueue) {
 	if (!banner) return false;
 
+	console.info("DOBID: Creative ["+ banner.AdCampaignBannerPreviewID +"] bid [$"+ banner.BidAmount +"] as ", getBidType(banner.BidType));
+
 	// console.log("BID BANNER: ", banner);
 	biddingQueue.push(banner);
+}
+
+var getBidType = function(bidTypeId) {
+	if (banner.BidType == config.bid_type.CPM) return 'CPM';
+
+	return 'CPC';
 }
