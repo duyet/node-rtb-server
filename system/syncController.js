@@ -80,7 +80,7 @@ exports.sync = function(req, res) {
 				}, {patch: true})
 				.then(function(model) {
 					if (model) {
-						console.info("SYNC: ["+ new Date() +"] Sync Adzone ["+ model.attributes.PublisherAdZoneID +"] -> {request: "+ model.attributes.TotalRequests +", imp: "+ model.attributes.TotalImpressions +", amount: $"+ model.attributes.TotalAmount +"}");
+						console.info("SYNC: ["+ new Date() +"] Sync Adzone ["+ model.attributes.PublisherAdZoneID +"] -> {request: "+ model.attributes.TotalRequests +", imp: "+ model.attributes.TotalImpressions +", amount: $"+ adzone.TotalAmount +"}");
 					}
 				})
 			});
