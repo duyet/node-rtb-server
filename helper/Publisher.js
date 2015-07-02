@@ -100,19 +100,24 @@ var Publishers = {
 				for (var jjj in rows) {
 					if (rows[jjj].PublisherInfoID == row.PublisherInfoID) {
 						var _isExistsAdzone = false;
-						publisherAdzone.forEach(function(web) {
+						publisherAdzone.forEach(function(adzone) {
 							if (_isExistsAdzone) return false;
-							if (web.PublisherWebsiteID == rows[jjj].PublisherWebsiteID) _isExistsAdzone = true;
+							if (adzone.PublisherAdZoneID == rows[jjj].PublisherAdZoneID) _isExistsAdzone = true;
 						});
+
+						// console.error("Check adzone of ["+ rows[jjj].PublisherInfoID +"]["+ rows[jjj].PublisherAdZoneID +"] => " , _isExistsAdzone);
+
 						if (!_isExistsAdzone) {
 							var _adzoneRow = rows[jjj];
 							var adzone = {
 								PublisherAdZoneID 		: _adzoneRow.PublisherAdZoneID, 
 								PublisherWebsiteID 		: _adzoneRow.PublisherWebsiteID, 
 								PublisherAdZoneTypeID 	: _adzoneRow.PublisherAdZoneTypeID, 
-								PublisherInfoID 		: _adzoneRow.PublisherInfoID,
-								ImpressionType 			: _adzoneRow.ImpressionType, 
+								
 								AdOwnerID 				: _adzoneRow.AdOwnerID, 
+								PublisherInfoID 		: _adzoneRow.PublisherInfoID, // Same to AdOwner ID 
+
+								ImpressionType 			: _adzoneRow.ImpressionType, 
 								AdName 					: _adzoneRow.AdName, 
 								Description 			: _adzoneRow.Description, 
 								PassbackAdTag 			: _adzoneRow.PassbackAdTag, 
@@ -123,10 +128,10 @@ var Publishers = {
 								Width 					: _adzoneRow.Width, 
 								Height 					: _adzoneRow.Height, 
 								FloorPrice 				: _adzoneRow.FloorPrice, 
-								TotalRequests 			: _adzoneRow.TotalRequests, 
-								TotalImpressions 		: _adzoneRow.TotalImpressions, 
-								TotalAmount 			: _adzoneRow.TotalAmount, 
-								DateCreated 			: _adzoneRow.DateCreated, 
+								TotalRequests 			: _adzoneRow.TotalRequests,  // Update when bids req
+								TotalImpressions 		: _adzoneRow.TotalImpressions,  // Update when impTracker
+								TotalAmount 			: _adzoneRow.TotalAmount,  // Update when impTracker and clickTracker
+								DateCreated 			: _adzoneRow.DateCreated,  
 								DateUpdated 			: _adzoneRow.DateUpdated
 							};
 
@@ -138,7 +143,7 @@ var Publishers = {
 				}
 				publisher.Adzone = publisherAdzone;
 
-				console.log(publisher);
+				// console.log(publisher);
 
 				Publishers.data.push(publisher);
 			});
@@ -174,7 +179,7 @@ var publisherFilter = function(publisher) {
 	// 1 = auto approve, 2 = stop, 3 = running, 4 = banned
 	if (!pub.AdStatus) return false;
 	pub.AdStatus = parseInt(pub.AdStatus);
-	if (pub.AdStatus != 1 || pub.AdStatus != 3) {
+	if (pub.AdStatus != 1 && pub.AdStatus != 3) {
 		console.error("WARN: Adzone ["+ pub.PublisherAdZoneID +"] is stopped or banned, skip.");
 		return false;
 	}
@@ -192,7 +197,11 @@ var adzoneFilter = function(adzone) {
 }
 
 Publishers.init(function() {
-	console.log(Publishers.data)
+	if (config.debug) {
+		setTimeout(function() {
+			require('fs').writeFile("logs/publisher_agent.txt", JSON.stringify(Publishers.data, null, 4), null);
+		}, 2000);
+	}
 });
 
 module.exports = Publishers;

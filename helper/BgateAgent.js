@@ -111,7 +111,7 @@ var BGateAgent = {
 									CampaignDeleted 				: _rowCampaign.CampaignDeleted,
 								});
 
-								if (passSelfCampaignFilter(campaign)) {
+								if (passSelfCampaignFilter(campaign, true)) {
 									agentCampaign.push(campaign);
 								}
 							}
@@ -136,71 +136,7 @@ var BGateAgent = {
 
 							if (!_isExists) {
 								
-								var _rowBanner = rows[j];
-								var banner = initBannerAttributes({
-									AdCampaignBannerPreviewID: _rowBanner.AdCampaignBannerPreviewID,
-									AdCampaignID: _rowBanner.AdCampaignID,
-									ImpressionType: _rowBanner.ImpressionType,
-									Name: _rowBanner.Name, 
-									StartDate: _rowBanner.StartDate, 
-									EndDate: _rowBanner.EndDate,
-									IsMobile: _rowBanner.IsMobile, 
-									IABSize: _rowBanner.IABSize,
-									Height: _rowBanner.Height,
-									Width: _rowBanner.Width,
-									Weight: _rowBanner.Weight,
-									DeliveryType: _rowBanner.DeliveryType,
-									LandingPageTLD: _rowBanner.LandingPageTLD,
-									
-									BidsCounter: _rowBanner.BidsCounter,
-									ClickCounter: _rowBanner.ClickCounter,
-									ImpressionsCounter: _rowBanner.ImpressionsCounter,
-									
-									CurrentSpend: _rowBanner.CurrentSpend,
-									MaximumBudget: _rowBanner.MaximumBudget,
-
-									Active: _rowBanner.Active,  // Banner Active status
-
-									DateCreated: _rowBanner.DateCreated,
-									DateUpdated: _rowBanner.DateUpdated,
-									ChangeWentLive: _rowBanner.ChangeWentLive,
-									WentLiveDate: _rowBanner.WentLiveDate, 
-									AdUrl: _rowBanner.AdUrl,
-									Label: _rowBanner.Label,
-									
-									BidType: _rowBanner.BidType, // 1 = CPM, 2 = CPC
-									BidAmount: _rowBanner.BidAmount,
-									BidAmountCPM: _rowBanner.BidAmount,
-
-									TargetDaily: _rowBanner.TargetDaily,
-									TargetMax: _rowBanner.TargetMax,
-									DailyBudget: _rowBanner.DailyBudget,
-
-									IABAudienceCategory: _rowBanner.IABAudienceCategory,
-									GEOCountry: _rowBanner.GEOCountry, 
-									TimeZone: _rowBanner.TimeZone,
-									FrequencyCap: _rowBanner.FrequencyCap, 
-									FreCapShowTime: _rowBanner.FreCapShowTime,
-									FreCapTimeFromHr: _rowBanner.FreCapTimeFromHr,
-									FreCapTimeToHr: _rowBanner.FreCapTimeToHr, 
-									FreCapCampaignApply: _rowBanner.FreCapCampaignApply,
-									FreCapZoneApply: _rowBanner.FreCapZoneApply,
-									AdTagType: _rowBanner.AdTagType,
-									InAnIframe: _rowBanner.InAnIframe,
-									MultiNestedIframe: _rowBanner.MultiNestedIframe,
-									AdPostLeft: _rowBanner.AdPostLeft,
-									AdPostTop: _rowBanner.AdPostTop,
-									ResolutionMinW: _rowBanner.ResolutionMinW,
-									ResolutionMaxW: _rowBanner.ResolutionMaxW, 
-									ResolutionMinH: _rowBanner.ResolutionMinH,
-									ResolutionMaxH: _rowBanner.ResolutionMaxH,
-									HttpLang: _rowBanner.HttpLang,
-									BrowerAgentGrep: _rowBanner.BrowerAgentGrep,
-									CookieGrep: _rowBanner.CookieGrep,
-									PmpEnable: _rowBanner.PmpEnable,
-									Secure: _rowBanner.Secure,
-									FoldPosition: _rowBanner.FoldPosition,
-								});
+								var banner = initBannerAttributes(rows[j]);
 
 								if (passSelfBannerFilter(banner)) {
 									agent.banner.push(banner);
@@ -261,8 +197,76 @@ var passSelfBannerFilter = function(banner) {
 	return true;
 };
 
-var initBannerAttributes = function(banner) {
-	if (!banner) return banner;
+var initBannerAttributes = function(_rowBanner) {
+	if (!_rowBanner) return _rowBanner;
+
+	// Check parrent campaign status 
+	if (!passSelfCampaignFilter(_rowBanner)) return false;
+
+	var banner = {
+		AdCampaignBannerPreviewID: _rowBanner.AdCampaignBannerPreviewID,
+		AdCampaignID: _rowBanner.AdCampaignID,
+		ImpressionType: _rowBanner.ImpressionType,
+		Name: _rowBanner.Name, 
+		StartDate: _rowBanner.StartDate, 
+		EndDate: _rowBanner.EndDate,
+		IsMobile: _rowBanner.IsMobile, 
+		IABSize: _rowBanner.IABSize,
+		Height: _rowBanner.Height,
+		Width: _rowBanner.Width,
+		Weight: _rowBanner.Weight,
+		DeliveryType: _rowBanner.DeliveryType,
+		LandingPageTLD: _rowBanner.LandingPageTLD,
+		
+		BidsCounter: _rowBanner.BidsCounter,
+		ClickCounter: _rowBanner.ClickCounter,
+		ImpressionsCounter: _rowBanner.ImpressionsCounter,
+		
+		CurrentSpend: _rowBanner.CurrentSpend,
+		MaximumBudget: _rowBanner.MaximumBudget,
+
+		Active: _rowBanner.Active,  // Banner Active status
+
+		DateCreated: _rowBanner.DateCreated,
+		DateUpdated: _rowBanner.DateUpdated,
+		ChangeWentLive: _rowBanner.ChangeWentLive,
+		WentLiveDate: _rowBanner.WentLiveDate, 
+		AdUrl: _rowBanner.AdUrl,
+		Label: _rowBanner.Label,
+		
+		BidType: _rowBanner.BidType, // 1 = CPM, 2 = CPC
+		BidAmount: _rowBanner.BidAmount,
+		BidAmountCPM: _rowBanner.BidAmount,
+
+		TargetDaily: _rowBanner.TargetDaily,
+		TargetMax: _rowBanner.TargetMax,
+		DailyBudget: _rowBanner.DailyBudget,
+
+		IABAudienceCategory: _rowBanner.IABAudienceCategory,
+		GEOCountry: _rowBanner.GEOCountry, 
+		TimeZone: _rowBanner.TimeZone,
+		FrequencyCap: _rowBanner.FrequencyCap, 
+		FreCapShowTime: _rowBanner.FreCapShowTime,
+		FreCapTimeFromHr: _rowBanner.FreCapTimeFromHr,
+		FreCapTimeToHr: _rowBanner.FreCapTimeToHr, 
+		FreCapCampaignApply: _rowBanner.FreCapCampaignApply,
+		FreCapZoneApply: _rowBanner.FreCapZoneApply,
+		AdTagType: _rowBanner.AdTagType,
+		InAnIframe: _rowBanner.InAnIframe,
+		MultiNestedIframe: _rowBanner.MultiNestedIframe,
+		AdPostLeft: _rowBanner.AdPostLeft,
+		AdPostTop: _rowBanner.AdPostTop,
+		ResolutionMinW: _rowBanner.ResolutionMinW,
+		ResolutionMaxW: _rowBanner.ResolutionMaxW, 
+		ResolutionMinH: _rowBanner.ResolutionMinH,
+		ResolutionMaxH: _rowBanner.ResolutionMaxH,
+		HttpLang: _rowBanner.HttpLang,
+		BrowerAgentGrep: _rowBanner.BrowerAgentGrep,
+		CookieGrep: _rowBanner.CookieGrep,
+		PmpEnable: _rowBanner.PmpEnable,
+		Secure: _rowBanner.Secure,
+		FoldPosition: _rowBanner.FoldPosition,
+	};
 
 	banner.BidType = parseInt(banner.BidType);
 
@@ -296,9 +300,9 @@ var initBannerAttributes = function(banner) {
 	return banner;
 };
 
-var passSelfCampaignFilter = function(campaign) {
+var passSelfCampaignFilter = function(campaign, log) {
 	// TODO: Check campagin conditions
-
+	var log = log || false;
 
 	//CampaignApproval 				: _rowCampaign.CampaignApproval,
 	//CampaignDeleted 				: _rowCampaign.CampaignDeleted,
@@ -306,9 +310,9 @@ var passSelfCampaignFilter = function(campaign) {
 	// CampaignApproval
 	// Approval: "0" => Banned, "1" => Stop, "2" => Running, "3" => Auto Approved
 	campaign.CampaignApproval = parseInt(campaign.CampaignApproval);
-	if (campaign.CampaignApproval != 2 || campaign.CampaignApproval != 3) {
+	if (campaign.CampaignApproval != 2 && campaign.CampaignApproval != 3) {
 		BGateAgent.campaignSkip.push(campaign.AdCampaignID);
-		console.error("WARN: Campaign ["+ campaign.AdCampaignID +"] was banned or stopped, skip.")
+		if (log) console.error("WARN: Campaign ["+ campaign.AdCampaignID +"] was banned or stopped (status: "+ campaign.CampaignApproval +"), skip.")
 		return false;
 	}
 
@@ -317,7 +321,7 @@ var passSelfCampaignFilter = function(campaign) {
 	campaign.CampaignDeleted = parseInt(campaign.CampaignDeleted);
 	if (campaign.CampaignDeleted != 0) {
 		BGateAgent.campaignSkip.push(campaign.AdCampaignID);
-		console.error("WARN: Campaign ["+ campaign.AdCampaignID +"] was deleted, skip.")
+		if (log) console.error("WARN: Campaign ["+ campaign.AdCampaignID +"] was deleted, skip.")
 		return false;
 	}
 
@@ -409,7 +413,7 @@ var updateBannerStatus = function(updateToMySql) {
 BGateAgent.init(function() {
 	if (config.debug) {
 		setTimeout(function() {
-			require('fs').writeFile("bgate_agent.txt", JSON.stringify(BGateAgent.agents, null, 4), null);
+			require('fs').writeFile("logs/bgate_agent.txt", JSON.stringify(BGateAgent.agents, null, 4), null);
 		}, 2000);
 	}
 });
