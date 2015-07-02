@@ -1,7 +1,7 @@
 'use strict';
 
 var config = require('../config/config');
-var BGateAgent = require('../helper/BgateAgent.js');
+var BGateAgent = require('../helper/BgateAgent');
 var Model = require('../config/db').Model;
 
 var AdCampaignBannerPreview = Model.extend({
@@ -14,7 +14,7 @@ var AdCampaignPreview = Model.extend({
 	idAttribute: 'AdCampaignPreviewID'
 });
 
-exports.banner = function(req, res) {
+exports.sync = function(req, res) {
 	if (!BGateAgent || !BGateAgent.agents) return false;
 
 	for (var i = 0; i < BGateAgent.agents.length; i++) {
@@ -25,10 +25,10 @@ exports.banner = function(req, res) {
 		for (var j = 0; j < agent.banner.length; j++) {
 			var banner = agent.banner[j];
 			new AdCampaignBannerPreview({AdCampaignBannerPreviewID: banner.AdCampaignBannerPreviewID, AdCampaignPreviewID: banner.AdCampaignID})
-				.save({BidsCounter: banner.BidsCounter, ImpressionsCounter: banner.ImpressionsCounter, CurrentSpend: banner.CurrentSpend}, {patch: true})
+				.save({BidsCounter: banner.BidsCounter, ImpressionsCounter: banner.ImpressionsCounter, CurrentSpend: banner.CurrentSpend, ClickCounter: banner.ClickCounter}, {patch: true})
 				.then(function(model) {
 					if (model) {
-						console.log("SYNC: ["+ new Date() +"] Sync creative counter, banker ["+ model.attributes.AdCampaignBannerPreviewID + "] --> {banner.BidsCounter: " +  banner.BidsCounter + ", banner.ImpressionsCounter: " + banner.ImpressionsCounter + ", CurrentSpend: banner.CurrentSpend: " + banner.CurrentSpend +"} ");
+						console.log("SYNC: ["+ new Date() +"] Sync Creative counter, Creative ["+ model.attributes.AdCampaignBannerPreviewID + "] --> {BidsCounter: " +  banner.BidsCounter + ", ImpsCounter: " + banner.ImpressionsCounter + ", CurrentSpend: " + banner.CurrentSpend +"} ");
 					}
 				});
 		}
@@ -38,7 +38,7 @@ exports.banner = function(req, res) {
 			new AdCampaignPreview({AdCampaignPreviewID: campaign.AdCampaignID})
 			.save({CurrentSpend: campaign.CampaignCurrentSpend, ImpressionsCounter: campaign.CampaignImpressionsCounter}, {patch: true}).then(function(model) {
 				if (model) {
-					console.info("SYNC: ["+ new Date() +"] Sync campaign counter, banker ["+ model.attributes.AdCampaignPreviewID +"] --> {CampaignCurrentSpend: "+  campaign.CampaignCurrentSpend +", CampaignImpressionsCounter: "+ campaign.CampaignImpressionsCounter +"} ");
+					console.info("SYNC: ["+ new Date() +"] Sync Campaign counter, Creative ["+ model.attributes.AdCampaignPreviewID +"] --> {CurrentSpend: "+  campaign.CampaignCurrentSpend +", ImpsCounter: "+ campaign.CampaignImpressionsCounter +"} ");
 				}
 			})
 		}
