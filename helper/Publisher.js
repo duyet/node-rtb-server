@@ -29,7 +29,7 @@ var Publishers = {
 		q += 	"(SELECT * FROM `PublisherAdZone`) AS tb2 ";
 		q += "ON tb1.PublisherInfoID = tb2.AdOwnerID ";
 		q += "INNER JOIN ";
-		q += 	"(SELECT *, `DateCreated` as `WebsiteDateCreated`, `DateUpdated` as `WebsiteDateUpdated` FROM `PublisherWebsite`) AS tb3 ";
+		q += 	"(SELECT *, `DateCreated` as `WebsiteDateCreated`, `DateUpdated` as `WebsiteDateUpdated`, `ApprovalFlag` as `WebsiteApprovalFlag` FROM `PublisherWebsite`) AS tb3 ";
 		q +=  "ON tb3.DomainOwnerID = tb1.PublisherInfoID";
 
 		connection.query(q, function(err, rows, fields) {
@@ -108,32 +108,8 @@ var Publishers = {
 						// console.error("Check adzone of ["+ rows[jjj].PublisherInfoID +"]["+ rows[jjj].PublisherAdZoneID +"] => " , _isExistsAdzone);
 
 						if (!_isExistsAdzone) {
-							var _adzoneRow = rows[jjj];
-							var adzone = {
-								PublisherAdZoneID 		: _adzoneRow.PublisherAdZoneID, 
-								PublisherWebsiteID 		: _adzoneRow.PublisherWebsiteID, 
-								PublisherAdZoneTypeID 	: _adzoneRow.PublisherAdZoneTypeID, 
-								
-								AdOwnerID 				: _adzoneRow.AdOwnerID, 
-								PublisherInfoID 		: _adzoneRow.PublisherInfoID, // Same to AdOwner ID 
-
-								ImpressionType 			: _adzoneRow.ImpressionType, 
-								AdName 					: _adzoneRow.AdName, 
-								Description 			: _adzoneRow.Description, 
-								PassbackAdTag 			: _adzoneRow.PassbackAdTag, 
-								AdStatus 				: _adzoneRow.AdStatus, 
-								AutoApprove 			: _adzoneRow.AutoApprove, 
-								AdTemplateID 			: _adzoneRow.AdTemplateID, 
-								IsMobileFlag 			: _adzoneRow.IsMobileFlag, 
-								Width 					: _adzoneRow.Width, 
-								Height 					: _adzoneRow.Height, 
-								FloorPrice 				: _adzoneRow.FloorPrice, 
-								TotalRequests 			: _adzoneRow.TotalRequests,  // Update when bids req
-								TotalImpressions 		: _adzoneRow.TotalImpressions,  // Update when impTracker
-								TotalAmount 			: _adzoneRow.TotalAmount,  // Update when impTracker and clickTracker
-								DateCreated 			: _adzoneRow.DateCreated,  
-								DateUpdated 			: _adzoneRow.DateUpdated
-							};
+							//var _adzoneRow = rows[jjj];
+							var adzone = initAdzone(rows[jjj]);
 
 							if (adzoneFilter(adzone)) {
 								publisherAdzone.push(adzone);
@@ -191,6 +167,43 @@ var websiteFilter = function(website) {
 
 	return true;
 };
+
+var initAdzone = function(_adzoneRow) {
+	_adzoneRow.WebsiteApprovalFlag = parseInt(_adzoneRow.WebsiteApprovalFlag);
+	
+	// 1=>"Auto-Approved", 2=>"Stop", 3=> "Running", 4=> “ban”
+	if (_adzoneRow.WebsiteApprovalFlag != 1 && _adzoneRow.WebsiteApprovalFlag != 3) {
+		console.error("WARN: Adzone ["+ _adzoneRow.PublisherAdZoneID +"] was skip because parrent Domain ["+ _adzoneRow.WebDomain +"] was stopped or banned.");
+	} 
+	
+	var adzone = {
+		PublisherAdZoneID 		: _adzoneRow.PublisherAdZoneID, 
+		PublisherWebsiteID 		: _adzoneRow.PublisherWebsiteID, 
+		PublisherAdZoneTypeID 	: _adzoneRow.PublisherAdZoneTypeID, 
+		
+		AdOwnerID 				: _adzoneRow.AdOwnerID, 
+		PublisherInfoID 		: _adzoneRow.PublisherInfoID, // Same to AdOwner ID 
+
+		ImpressionType 			: _adzoneRow.ImpressionType, 
+		AdName 					: _adzoneRow.AdName, 
+		Description 			: _adzoneRow.Description, 
+		PassbackAdTag 			: _adzoneRow.PassbackAdTag, 
+		AdStatus 				: _adzoneRow.AdStatus, 
+		AutoApprove 			: _adzoneRow.AutoApprove, 
+		AdTemplateID 			: _adzoneRow.AdTemplateID, 
+		IsMobileFlag 			: _adzoneRow.IsMobileFlag, 
+		Width 					: _adzoneRow.Width, 
+		Height 					: _adzoneRow.Height, 
+		FloorPrice 				: _adzoneRow.FloorPrice, 
+		TotalRequests 			: _adzoneRow.TotalRequests,  // Update when bids req
+		TotalImpressions 		: _adzoneRow.TotalImpressions,  // Update when impTracker
+		TotalAmount 			: _adzoneRow.TotalAmount,  // Update when impTracker and clickTracker
+		DateCreated 			: _adzoneRow.DateCreated,  
+		DateUpdated 			: _adzoneRow.DateUpdated
+	};
+
+	return adzone;
+}
 
 var adzoneFilter = function(adzone) {
 	return true;
