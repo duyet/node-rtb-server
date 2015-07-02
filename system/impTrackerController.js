@@ -4,7 +4,7 @@ var Model = require('../config/db').Model;
 var tracker = require('pixel-tracker');
 var ImpLog = require('../config/mongodb').ImpLog;
 var BGateAgent = require('../helper/BgateAgent');
-var BGateAgent = require('../helper/Publisher');
+var PublisherAgent = require('../helper/Publisher');
 
 // ==================================
 // DATABASE CONSTRUCT
@@ -52,7 +52,10 @@ exports.tracker = function(req, res) {
 		lastImp = data;
 
 		// Update counter for creative and campaign in Bgate Agent 
-		updateImpCounterInAgent(data.AdCampaignBannerID);
+		updateImpCounterInBGateAgent(data.AdCampaignBannerID);
+
+		// Update counter for adzone in Publisher Agent
+		updateCounterInPublisherAgent(data.PublisherAdZoneID, data.Price);
 
 		// Update counter in DB
 	    if (!data.PublisherAdZoneID || !data.AdCampaignBannerID) {
@@ -69,7 +72,7 @@ exports.tracker = function(req, res) {
 	return tracker.middleware(req, res);
 };
 
-var updateImpCounterInAgent = function(bannerId) {
+var updateImpCounterInBGateAgent = function(bannerId) {
 	if (!BGateAgent && !BGateAgent.agents) return false;
 
 	BGateAgent.agents.forEach(function(agent) {
@@ -106,6 +109,29 @@ var updateImpCounterInAgent = function(bannerId) {
 
 	return true;
 }
+
+var updateCounterInPublisherAgent = function(adzoneId, price) {
+	if (!PublisherAgent || !PublisherAgent.data) return false;
+
+	var updated = false;
+	PublisherAgent.data.forEach(function(pub) {
+		if (!pub || !pub.Adzone) return false;
+
+		if (updated) return false;
+		pub.Adzone.forEach(function(adzone) {
+			if (adzone.PublisherAdZoneID == adzoneId) {
+				adzone.TotalImpressions ++; // Update impression counter
+				adzone.TotalAmount += price || 0.0;
+
+				pub.Balance += price || 0.0; // Update Balance
+
+				updated = true;
+			} 
+		})
+	});
+
+	return true;
+};
 
 var getBannerById = function(bannerId) {
 	if (!BGateAgent || !BGateAgent.agents) return false;
