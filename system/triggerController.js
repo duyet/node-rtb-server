@@ -41,8 +41,6 @@ exports.trigger_reset_publisher = function(req, res) {
 		console.timeEnd("INFO: Reseting Publisher.");
 	});
 
-	console.log(Publisher.data);
-
 	res.send("ok");
 }
 

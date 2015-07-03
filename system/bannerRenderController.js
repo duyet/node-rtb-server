@@ -1,8 +1,8 @@
 'use strict';
 
 var config = require('../config/config');
-var BGateAgent = require('../helper/BgateAgent.js');
-var builder = require('../helper/builder.js');
+var BGateAgent = require('../helper/BgateAgent');
+var builder = require('../helper/builder');
 var render = require('../render');
 
 /**
@@ -65,7 +65,6 @@ exports.render = function(req, res) {
 		console.error("ERR: ["+ logDatetime +"] Banner render, no thing to render.")
 		return res.status(404).send();
 	}
-	// next();
 };
 
 /**

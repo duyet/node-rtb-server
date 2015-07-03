@@ -30,14 +30,19 @@ exports.tracker = function(req, res) {
 	    	UserIP : result.geo.ip || '',
 	    	Country : JSON.stringify(result.language) || '',
 	    	Price : 0.0,
+	    	NetPrice: 0.0,
 	    	created: new Date()
 	    };
 
     	var banner = getBannerById(data.AdCampaignBannerID);
 		if (!banner) {
-			console.log("INFO: ["+ new Date() +"] Click tracker can not find info of creative [" + banner.AdCampaignBannerID + "]");
+			console.log("INFO: ["+ new Date() +"] Imp tracker can not find info of creative [" + banner.AdCampaignBannerID + "]");
 		}
-		data.Price = banner.BidAmount;
+
+		if (banner.BidType == config.bid_type.CPM) {
+			data.Price = banner.BidAmount;
+			data.NetPrice = banner.BidAmount - banner.BidAmount * banner.CampaignMarkup;	
+		}
 
 		if (lastImp) {
 			if (

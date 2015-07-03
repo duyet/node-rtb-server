@@ -172,7 +172,7 @@ exports.bids = function(req, res) {
 	// WAITING FOR BIDDING FROM AGENT
 	// ==================================
 	console.time("TIMER: BIDDNG ...");
-	var biddingTimeout = setTimeout(function() {
+	setTimeout(function() {
 		if (isBreak == true) return false;
 
 		// ==================================
@@ -199,6 +199,7 @@ exports.bids = function(req, res) {
 		// Save Bidding Mapper 
 		console.time("TIMER: Save Bid Mapper to Database");
 		biddingQueue.forEach(function(bidding) {
+			/*
 			new BiddingMapLog({
 				impId: bidding.impId, 
 				AdzoneMapBannerId: build.getAdzoneMapBannerId(bidReq.id, bidReq.site.id),
@@ -211,6 +212,7 @@ exports.bids = function(req, res) {
 				if (err) console.error(err);
 				else console.log('[' + logDatetime + "] Saved Bid Mapper id " + model.id + ' for ['+ bidReq.site.id +', '+ bidding.AdCampaignBannerPreviewID +']');
 			});
+			*/
 		});
 		console.timeEnd("TIMER: Save Bid Mapper to Database");
 

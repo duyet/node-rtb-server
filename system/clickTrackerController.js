@@ -1,6 +1,6 @@
 'use strict';
 
-var _ = require('lodash');
+var config = require('../config/config');
 
 var BGateAgent = require('../helper/BgateAgent.js');
 var tracker = require('pixel-tracker');
@@ -14,6 +14,7 @@ var DemandCustomerInfo = Model.extend({
 	idAttribute: 'DemandCustomerInfoID'
 });
 
+// TODO: BGate chua chap nhan CPC, chua tinh Price & NetPrice cho CPC
 
 /*
 	http://ptnhttt.uit.edu.vn:8899/click_tracker?type=click_tracker&pid=9&
@@ -65,11 +66,16 @@ module.exports.tracker = function(req, res) {
 
 	// TODO: Add prices
 	clickData.Price = 0.0;
+	clickData.NetPrice = 0.0;
 	var banner = getBannerById(clickData.AdCampaignBannerID);
 	if (!banner) {
 		console.log("INFO: ["+ new Date() +"] Click tracker can not find info of creative " + clickData.AdCampaignBannerID);
 	}
-	clickData.Price = banner.BidAmount;
+	
+	if (banner.BidType == config.bid_type.CPC) {
+		clickData.Price = banner.BidAmount;
+		clickData.NetPrice = banner.BidAmount - banner.BidAmount * banner.CampaignMarkup;	
+	}
 
 	// Created time
 	clickData.created = new Date();
