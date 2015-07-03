@@ -82,12 +82,15 @@ module.exports = function(app) {
 	// SYNC
 	// ========================================
 	// Sync banenr 
-	app.route(routePath.sync_route)
-		.get(sync.sync);
+	app.route(routePath.sync_counter)
+		.get(sync.counter);
 
 	// Sync banenr 
 	app.route(routePath.sync_dailytracker)
 		.get(sync.dailytracker);	
+
+	app.route(routePath.sync_internaltransaction)
+		.get(sync.internaltransaction);
 
 	if (config.debug) {
 		var debugController = require('../system/debugController.js');

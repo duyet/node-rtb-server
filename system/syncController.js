@@ -27,7 +27,7 @@ var PublisherAdZone = Model.extend({
 	idAttribute: 'PublisherAdZoneID'
 });
 
-exports.sync = function(req, res) {
+exports.counter = function(req, res) {
 	if (!BGateAgent || !BGateAgent.agents) return false;
 	if (!PublisherAgent || !PublisherAgent.data) return false;
 
@@ -93,7 +93,25 @@ exports.sync = function(req, res) {
 }
 
 exports.dailytracker = function(req, res) {
+	if (!req.query || !req.query.s || req.query.s != config.trigger_token) {
+		return res.status(404).send("Not Found");
+	}
+
+	console.info("SYNC: ["+ new Date() +"] Sync daily tracker.");
 	console.info('node '+ __dirname +'/../cronjob/banner-adzone-daily-tracker.js');
+	exec('node '+ __dirname +'/../cronjob/banner-adzone-daily-tracker.js', function(error, stdout, stderr) {
+		console.log(error, stdout, stderr);
+	});
+	res.send('ok');
+}
+
+exports.internaltransaction = function(req, res) {
+	if (!req.query || !req.query.s || req.query.s != config.trigger_token) {
+		return res.status(404).send("Not Found");
+	}
+
+	console.info("SYNC: ["+ new Date() +"] Sync internal transaction.");
+	console.info('node '+ __dirname +'/../cronjob/internal-transaction-monthly.js');
 	exec('node '+ __dirname +'/../cronjob/banner-adzone-daily-tracker.js', function(error, stdout, stderr) {
 		console.log(error, stdout, stderr);
 	});

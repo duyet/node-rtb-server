@@ -52,8 +52,9 @@ module.exports = {
 		trigger_reset_all: '/trigger/refresh/all',
 
 		// Sync
-		sync_route: '/sync/sync',
+		sync_counter: '/sync/counter',
 		sync_dailytracker: '/sync/dailytracker',
+		sync_internaltransaction: '/sync/internaltransaction'
 	}, 
 
 	bgate_ad_icon: '//3.bp.blogspot.com/-7aQF3mBOWPU/VY67czg2QmI/AAAAAAAACkk/FCBfavh1iI0/s1600/adxlogo-2.png',
