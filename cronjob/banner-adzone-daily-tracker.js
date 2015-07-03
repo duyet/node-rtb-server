@@ -1,6 +1,10 @@
+// TODO: Banner & Adzone daily counter with algorithms get out a large of fucking loop.
+// TODO: Fix me!
+
 'use strict';
 
 var Model = require('../config/db').Model;
+var Publisher = require('../helper/Publisher');
 var ImpLog = require('../config/mongodb').ImpLog;
 var ClickLog = require('../config/mongodb').ClickLog;
 
@@ -91,6 +95,8 @@ ImpLog.find({
 					if (!isExists && reports_AdBannerDailyTracker[j].AdCampaignBannerID == banner_id) {
 						isExists = true;
 						reports_AdBannerDailyTracker[j].ImpCount++;
+						reports_AdBannerDailyTracker[j].Outcome += row.Price  || 0.0;
+						reports_AdBannerDailyTracker[j].NetOutcome += row.NetPrice  || 0.0;
 					}
 				}
 
@@ -100,7 +106,8 @@ ImpLog.find({
 						AdCampaignBannerID: banner_id,
 						ImpCount: 1,
 						ClickCount: 0, 
-						Outcome: 0.0,
+						Outcome: row.Price  || 0.0,
+						NetOutcome: row.NetPrice || 0.0,
 						DateCreated: new Date().toMysqlDate(),
 						DateUpdated: new Date()
 					}
@@ -127,9 +134,6 @@ ImpLog.find({
 							// Current Banner 
 							var banner_id = row.AdCampaignBannerID;
 
-							// Current prices
-							var price = row.Price;
-
 							// Check for exists in reports_AdBannerDailyTracker array
 							var isExists = false;
 							for (var j = 0; j < reports_AdBannerDailyTracker.length; j++) {
@@ -137,7 +141,8 @@ ImpLog.find({
 								if (!isExists && reports_AdBannerDailyTracker[j].AdCampaignBannerID == banner_id) {
 									isExists = true;
 									reports_AdBannerDailyTracker[j].ClickCount++;
-									reports_AdBannerDailyTracker[j].Outcome += price;
+									reports_AdBannerDailyTracker[j].Outcome += row.Price  || 0.0;
+									reports_AdBannerDailyTracker[j].NetOutcome += row.NetPrice  || 0.0;
 								}
 							}
 
@@ -147,7 +152,8 @@ ImpLog.find({
 									AdCampaignBannerID: banner_id,
 									ImpCount: 0,
 									ClickCount: 1, 
-									Outcome: price,
+									Outcome: price || 0.0,
+									NetOutcome: row.NetPrice || 0.0,
 									DateCreated: new Date().toMysqlDate(),
 									DateUpdated: new Date()
 								}
@@ -169,6 +175,7 @@ ImpLog.find({
 									model.set('ImpCount', report.ImpCount);
 									model.set('ClickCount', report.ClickCount);
 									model.set('Outcome', report.Outcome);
+									model.set('NetOutcome', report.NetOutcome);
 									model.set('DateUpdated', report.DateUpdated);
 									model.save().then(function(m) {
 										console.log("INFO: Update report banner to MySQL Server");	
@@ -180,6 +187,7 @@ ImpLog.find({
 										ImpCount: report.ImpCount,
 										ClickCount: report.ClickCount,
 										Outcome: report.Outcome,
+										NetOutcome: report.NetOutcome,
 										DateUpdated: report.DateUpdated
 									}).save().then(function(model) {
 										console.log("xx",model);
@@ -188,21 +196,6 @@ ImpLog.find({
 								}
 							});
 
-							/*
-							console.error("=========> ", report);
-							new AdBannerDailyTracker({
-								AdCampaignBannerID: report.banner_id,
-								DateCreated: report.DateCreated
-							}).save({
-								ImpCount: report.ImpCount,
-								ClickCount: report.ClickCount,
-								Outcome: report.Outcome,
-								DateUpdated: report.DateUpdated
-							}, {patch: true}).then(function(model) {
-								// console.log(model);
-								console.log("INFO: Save report to MySQL Server!");
-							});
-							*/
 						});
 						console.timeEnd("TIMER: Start sync AdBannerDailyTracker data");
 						
@@ -230,12 +223,15 @@ ImpLog.find({
 			reports_AdzoneDailyTracker = [];
 
 			// So, do some fucking loop
+			// TODO: Fix me
 			
 			for (var i = 0; i < rows.length; i++) {
 				var row = rows[i];
 
 				// Current Banner 
 				var adzone_id = row.PublisherAdZoneID;
+				var adzone = getAdzoneById(adzone_id);
+				if (!adzone) return false;
 
 				// Check for exists in reports_AdzoneDailyTracker array
 				var isExists = false;
@@ -244,6 +240,8 @@ ImpLog.find({
 					if (!isExists && reports_AdzoneDailyTracker[j].PublisherAdZoneID == adzone_id) {
 						isExists = true;
 						reports_AdzoneDailyTracker[j].ImpCount++;
+						reports_AdzoneDailyTracker[j].Income += row.NetPrice || 0.0;
+						reports_AdzoneDailyTracker[j].NetIncome += (row.NetPrice - row.NetPrice * adzone.DomainMarkup) || 0.0;
 					}
 				}
 
@@ -253,7 +251,8 @@ ImpLog.find({
 						PublisherAdZoneID: adzone_id,
 						ImpCount: 1,
 						ClickCount: 0, 
-						Income: 0.0,
+						Income: row.NetPrice || 0.0,
+						NetIncome: (row.NetPrice - row.NetPrice * adzone.DomainMarkup) || 0.0,
 						DateCreated: new Date().toMysqlDate(),
 						DateUpdated: new Date()
 					}
@@ -280,9 +279,6 @@ ImpLog.find({
 							// Current Banner 
 							var adzone_id = row.PublisherAdZoneID;
 
-							// Current prices
-							var price = row.Price;
-
 							// Check for exists in reports_AdzoneDailyTracker array
 							var isExists = false;
 							for (var j = 0; j < reports_AdzoneDailyTracker.length; j++) {
@@ -290,7 +286,8 @@ ImpLog.find({
 								if (!isExists && reports_AdzoneDailyTracker[j].PublisherAdZoneID == adzone_id) {
 									isExists = true;
 									reports_AdzoneDailyTracker[j].ClickCount++;
-									reports_AdzoneDailyTracker[j].Income += price;
+									reports_AdzoneDailyTracker[j].Income += row.NetPrice || 0.0;
+									reports_AdzoneDailyTracker[j].NetIncome += (row.NetPrice - row.NetPrice * adzone.DomainMarkup) || 0.0;
 								}
 							}
 
@@ -300,7 +297,8 @@ ImpLog.find({
 									PublisherAdZoneID: adzone_id,
 									ImpCount: 0,
 									ClickCount: 1, 
-									Income: price,
+									Income: row.NetPrice || 0.0,
+									NetIncome: (row.NetPrice - row.NetPrice * adzone.DomainMarkup) || 0.0,
 									DateCreated: new Date().toMysqlDate(),
 									DateUpdated: new Date()
 								}
@@ -321,6 +319,7 @@ ImpLog.find({
 									model.set('ImpCount', report.ImpCount);
 									model.set('ClickCount', report.ClickCount);
 									model.set('Income', report.Income);
+									model.set('NetIncome', report.NetIncome);
 									model.set('DateUpdated', report.DateUpdated);
 									model.save().then(function(m) {
 										console.log("INFO: Update report adzone to MySQL Server");	
@@ -332,6 +331,7 @@ ImpLog.find({
 										ImpCount: report.ImpCount,
 										ClickCount: report.ClickCount,
 										Income: report.Income,
+										NetIncome: report.NetIncome,
 										DateUpdated: report.DateUpdated
 									}).save().then(function(model) {
 										console.log("xx",model);
@@ -350,3 +350,22 @@ ImpLog.find({
 	});
 
 
+var getAdzoneById = function(adzoneId) {
+	if (!Publisher || !Publisher.data) return false;
+
+	var adzone = false;
+	var isSkip = false;
+	Publisher.data.forEach(function(pub) {
+		if (isSkip) return false;
+		if (!pub.Adzone) return false;
+		pub.Adzone.forEach(function(adz) {
+			if (isSkip) return false;
+			if (adz.PublisherAdZoneID == adzoneId) {
+				adzone = adz;
+				isSkip = true;
+			}
+		});
+	});
+
+	return adzone;
+}

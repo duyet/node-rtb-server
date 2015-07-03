@@ -22,6 +22,10 @@ var bannerAdzoneDailyTracker = setInterval(function() {
 	run(rootPath + "/cronjob/banner-adzone-daily-tracker.js");
 }, bannerAdzoneDailyTrackerEvery);
 
+var internalTransactionEvery = 7 * 24 * 60 * 60 * 1000; // 7 days
+var internalTransaction = setInterval(function() {
+	run(rootPath + "/cronjob/internal-transaction-monthly.js");
+}, internalTransactionEvery);
 
 var run = function(path) {
 	var message = ("["+ new Date() +"]: Cronjob ", path);
