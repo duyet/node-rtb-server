@@ -53,6 +53,7 @@ module.exports = {
 
 		// Sync
 		sync_route: '/sync/sync',
+		sync_dailytracker: '/sync/dailytracker',
 	}, 
 
 	bgate_ad_icon: '//3.bp.blogspot.com/-7aQF3mBOWPU/VY67czg2QmI/AAAAAAAACkk/FCBfavh1iI0/s1600/adxlogo-2.png',

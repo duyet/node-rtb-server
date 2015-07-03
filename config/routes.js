@@ -85,6 +85,10 @@ module.exports = function(app) {
 	app.route(routePath.sync_route)
 		.get(sync.sync);
 
+	// Sync banenr 
+	app.route(routePath.sync_dailytracker)
+		.get(sync.dailytracker);	
+
 	if (config.debug) {
 		var debugController = require('../system/debugController.js');
 		app.route('/debug').get(debugController.main);

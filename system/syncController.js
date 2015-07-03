@@ -1,5 +1,7 @@
 'use strict';
 
+var exec = require('child_process').exec;
+
 var config = require('../config/config');
 var BGateAgent = require('../helper/BgateAgent');
 var PublisherAgent = require('../helper/Publisher');
@@ -88,4 +90,12 @@ exports.sync = function(req, res) {
 	});
 
 	res.send("ok");
+}
+
+exports.dailytracker = function(req, res) {
+	console.info('node '+ __dirname +'/../cronjob/banner-adzone-daily-tracker.js');
+	exec('node '+ __dirname +'/../cronjob/banner-adzone-daily-tracker.js', function(error, stdout, stderr) {
+		console.log(error, stdout, stderr);
+	});
+	res.send('ok');
 }
