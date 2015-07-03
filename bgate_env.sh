@@ -1,0 +1,1 @@
+export BGATE_HOME=/home/ubuntu/bgate_server_nodejs
