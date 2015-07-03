@@ -91,6 +91,7 @@ var BGateAgent = {
 
 								var campaign = initCampainAttributes({
 									AdCampaignID 					: _rowCampaign.AdCampaignID,
+									UserID 							: _rowCampaign.UserID,
 									CampaignName 					: _rowCampaign.CampaignName,
 									CampaignMarkup 					: _rowCampaign.CampaignMarkup,
 									CampaignStartDate 				: _rowCampaign.CampaignStartDate,
@@ -206,8 +207,10 @@ var initBannerAttributes = function(_rowBanner) {
 	var banner = {
 		AdCampaignBannerPreviewID: _rowBanner.AdCampaignBannerPreviewID,
 		AdCampaignID: _rowBanner.AdCampaignID,
+		UserID: _rowBanner.UserID,
 		ImpressionType: _rowBanner.ImpressionType,
 		Name: _rowBanner.Name, 
+		CampaignMarkup: _rowBanner.CampaignMarkup,
 		StartDate: _rowBanner.StartDate, 
 		EndDate: _rowBanner.EndDate,
 		IsMobile: _rowBanner.IsMobile, 

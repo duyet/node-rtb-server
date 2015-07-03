@@ -125,22 +125,6 @@ var Publishers = {
 			});
 		});
 
-		/*
-		Publishers.data = [];
-		new PublisherAdZone().fetchAll().then(function(pub) {
-			if (pub) {
-				pub.forEach(function(p) {
-					var pub = initPublisherAttributes(p.attributes);
-
-					if (publisherFilter(pub)) {
-						Publishers.data.push(pub);
-					}
-
-				})
-			}
-			
-		});
-		*/
 		if (next) next();
 	}
 };
@@ -184,6 +168,7 @@ var initAdzone = function(_adzoneRow) {
 		AdOwnerID 				: _adzoneRow.AdOwnerID, 
 		PublisherInfoID 		: _adzoneRow.PublisherInfoID, // Same to AdOwner ID 
 
+		DomainMarkup 			: _adzoneRow.DomainMarkup,
 		ImpressionType 			: _adzoneRow.ImpressionType, 
 		AdName 					: _adzoneRow.AdName, 
 		Description 			: _adzoneRow.Description, 
