@@ -11,12 +11,13 @@ var fs = require('fs'),
 	morgan = require('morgan'),
 	bodyParser = require('body-parser'),
 	session = require('express-session'),
-	expressValidator = require('express-validator'),
+	// expressValidator = require('express-validator'),
 	methodOverride = require('method-override'),
 	cookieParser = require('cookie-parser'),
+	cookieSession = require('cookie-session'),
 	helmet = require('helmet'),
 	cors = require('cors'),
-	//flash = require('connect-flash'),
+	// flash = require('connect-flash'),
 	FileStreamRotator = require('file-stream-rotator'),
 	config = require('./config/config'),
 	compression = require('compression'),
@@ -40,9 +41,17 @@ var fs = require('fs'),
 	});
 
 	// Showing stack errors
-	app.set('showStackError', true);
+	if (config.debug) app.set('showStackError', true);
 
+	app.set('trust proxy', 1) // trust first proxy
+	
+	// Jade for render iframe ads
 	app.set('view engine', 'jade');
+
+	app.use(cookieSession({
+		name: 'bgate-imp-fre',
+		keys: ['impfre', 'bgate', 'lvduit']
+	}))
 
 	// https://en.wikipedia.org/wiki/Cross-origin_resource_sharing
 	app.use(cors());
@@ -62,8 +71,7 @@ var fs = require('fs'),
 		date_format: "YYYY-MM-DD"
 	})
 	// setup the logger
-	app.use(morgan('combined', {stream: accessLogStream}))
-
+	app.use(morgan('combined', {stream: accessLogStream}));
 
 	// Environment dependent middleware
 	if (config.debug) {
@@ -81,12 +89,6 @@ var fs = require('fs'),
 	app.use(bodyParser.json());
 	app.use(compression({level: 9})); //use compression 
 	app.use(methodOverride());
-	
-	app.use(expressValidator({
-		errorFormatter: function(param, msg, value) {
-			return msg;
-		}
-	}));
 
 	// CookieParser should be above session
 	app.use(cookieParser());
@@ -95,24 +97,12 @@ var fs = require('fs'),
 	//app.use(flash());
 
 	// Use helmet to secure Express headers
-	app.use(helmet.xframe());
+	// app.use(helmet.xframe());
 	app.use(helmet.xssFilter());
 	app.use(helmet.nosniff());
 	app.use(helmet.ienoopen());
 	app.disable('x-powered-by');
 
-	/*
-	app.use(function(req, res, next) {
-		res.setHeader("Access-Control-Allow-Origin", "*");
-		res.setHeader("Access-Control-Allow-Credentials", "true");
-		res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
-		res.header("Access-Control-Allow-Headers", "X-Requested-With");
-		//res.setHeader("Content-Type","application/json");
-		return next();
-	});
-	*/
-
-	
 	app.use(function(req, res, next) {
 	   res.header("Access-Control-Allow-Origin", "*");
 	   res.header('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,OPTIONS');
