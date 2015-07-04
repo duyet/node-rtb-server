@@ -1,5 +1,6 @@
 'use strict';
 
+var uuid = require('uuid');
 var moment = require('moment');
 var _ = require('lodash');
 var config = require('../config/config');
@@ -14,6 +15,7 @@ var bidTimeout = 120;
 var isBidTimeout = false;
 
 var lastBidId = "";
+var biddingQueue = {};
 
 // ==================================
 // LOAD ALL BANNER TO CACHE
@@ -31,7 +33,9 @@ exports.index = function(req, res) {
 // ==================================
 // BID LISTENER
 // ==================================
+
 exports.bids = function(req, res) {
+	var biddingID = uuid.v1();
 	var bidReq = {
 		id: '',
 		imp: [],
@@ -52,24 +56,26 @@ exports.bids = function(req, res) {
 	isBidTimeout = false;
 
 	// Reset bidding queue
-	var biddingQueue = [];
+	biddingQueue[biddingID] = {created: 0, data: []};
 
 	var logDatetime = new Date();
+
+	var bgate_client_req = req.body;
 
 	console.info("============================================================");
 	console.info("TRACK: ["+ logDatetime +"] On Bid request");
 	// ==================================
 	// VALIDATE BIDS REQUEST
 	// ==================================
-	if (!req.body) {
+	if (!bgate_client_req) {
 		console.error("ERR: ["+ logDatetime +"] Can not parse bid request");
 		return res.status(500).json("ERR: ["+ logDatetime +"] Can not parse bid request");
 	}
-	else if (!req.body.id) {
+	else if (!bgate_client_req.id) {
 		console.error("ERR: ["+ logDatetime +"] Missing bid request id.");
 		return res.status(500).json("ERR: ["+ logDatetime +"] Missing bid request id.");
 	}
-	else if (!req.body.imp || !_.isArray(req.body.imp)) {
+	else if (!bgate_client_req.imp || !_.isArray(bgate_client_req.imp)) {
 		console.error("ERR: ["+ logDatetime +"] Missing bid request imp.");
 		return res.status(500).json("ERR: ["+ logDatetime +"] Missing bid request imp.");
 	}
@@ -77,7 +83,7 @@ exports.bids = function(req, res) {
 	// ==================================
 	// COLLECT DATA
 	// ==================================
-	bidReq.id = req.body.id;
+	bidReq.id = bgate_client_req.id;
 	if (lastBidId && lastBidId == bidReq.id) {
 		var s = "ERR: ["+ logDatetime +"] "+ lastBidId +" is aldready in process.";
 		console.error(s);
@@ -86,36 +92,36 @@ exports.bids = function(req, res) {
 	}
 	lastBidId = bidReq.id;
 
-	bidReq.at = req.body.at || bidReq.at;
-	if (req.body.device) {
-		bidReq.device.ua = req.body.device.ua || bidReq.device.ua;
-		bidReq.device.ip = req.body.device.ip || bidReq.device.ip;
+	bidReq.at = bgate_client_req.at || bidReq.at;
+	if (bgate_client_req.device) {
+		bidReq.device.ua = bgate_client_req.device.ua || bidReq.device.ua;
+		bidReq.device.ip = bgate_client_req.device.ip || bidReq.device.ip;
 	}
-	if (req.body.site) {
-		bidReq.site.id = req.body.site.id || bidReq.site.id;
-		bidReq.site.domain = req.body.site.domain || bidReq.site.domain;
-		bidReq.site.cat = req.body.site.cat || bidReq.site.cat;
+	if (bgate_client_req.site) {
+		bidReq.site.id = bgate_client_req.site.id || bidReq.site.id;
+		bidReq.site.domain = bgate_client_req.site.domain || bidReq.site.domain;
+		bidReq.site.cat = bgate_client_req.site.cat || bidReq.site.cat;
 		if (!_.isArray(bidReq.site.cat)) {
 			console.error("ERR: ["+ logDatetime +"] Imp ID ["+ bidReq.id +"]: site.cat must is array.");
 			return res.status(500).json("ERR: ["+ logDatetime +"] Imp ID ["+ bidReq.id +"]: site.cat must is array.");
 		}
 
-		bidReq.site.page = req.body.site.page || bidReq.site.page;
-		if (req.body.site.publisher) bidReq.site.publisher = req.body.site.publisher;
+		bidReq.site.page = bgate_client_req.site.page || bidReq.site.page;
+		if (bgate_client_req.site.publisher) bidReq.site.publisher = bgate_client_req.site.publisher;
 	}
 
 	// Local bidding require Adzone info 
-	//if (req.body.adzone) bidReq.adzone = req.body.adzone;
+	//if (bgate_client_req.adzone) bidReq.adzone = bgate_client_req.adzone;
 	//if (!bidReq.adzone || !bidReq.adzone.id) {
 	//	return res.status(500).json("ERR: Missing Adzone info.");
 	//}
 
 	// Bid Timeout 
-	if (req.body.tmax && req.body.tmax > 0) bidReq.tmax = bidTimeout = req.body.tmax;
+	if (bgate_client_req.tmax && bgate_client_req.tmax > 0) bidReq.tmax = bgate_client_req.tmax || bidTimeout;
 
 	var results = [];
 	var isBreak = false; var isError = false;
-	req.body.imp.forEach(function(i) {
+	bgate_client_req.imp.forEach(function(i) {
 		if (isBreak == true) return false;
 
 		// ==================================
@@ -163,7 +169,7 @@ exports.bids = function(req, res) {
 		// PROCESSING BIDDING FOR EACH AGENT
 		// ==================================
 		
-		_.map(BGateAgent.agents, _.curry(bid)(newImp, biddingQueue));
+		_.map(BGateAgent.agents, _.curry(bid)(newImp, biddingID));
 
 		console.log("Find banner with: width = " + newImp.banner.width + ", height = " + newImp.banner.height + ", bidfloor = " + newImp.bidfloor)
 	});
@@ -178,28 +184,30 @@ exports.bids = function(req, res) {
 		// ==================================
 		// WHO'S WIN?
 		// ==================================
-		if (!biddingQueue) return generateEmptyResponse(res);
+		if (!biddingQueue[biddingID].data) return generateEmptyResponse(res);
 
 		// console.log("##################", biddingQueue);
-		var choosen = _.sortByOrder(
-			biddingQueue, 
+		
+		var choosen = biddingQueue[biddingID].data;
+		/*var choosen = _.sortByOrder(
+			biddingQueue[biddingID].data, 
 			['BidAmount'],
 			[false]
-		);
-
-		// TODO: Log lose
+		);*/
+		
+		// console.log("|||||||||||||||||||||||||||=============> Gen Response for req ["+ biddingID +"]: ", biddingQueue[biddingID].data);
 
 		var win = [choosen[0]];
 
 		// ==================================
 		// GENERATE RESPONSE 
 		// ==================================
-		generateBidResponse(res, bidReq, win);
+		// console.log("|||||||||||||||||||||||||||=============> Gen Response for req ["+ biddingID +"]: ", win[0].impId)
+		generateBidResponse(res, bidReq, win, biddingID);
 
 		// Save Bidding Mapper 
 		console.time("TIMER: Save Bid Mapper to Database");
-		biddingQueue.forEach(function(bidding) {
-			/*
+		biddingQueue[biddingID].data.forEach(function(bidding) {
 			new BiddingMapLog({
 				impId: bidding.impId, 
 				AdzoneMapBannerId: build.getAdzoneMapBannerId(bidReq.id, bidReq.site.id),
@@ -212,13 +220,12 @@ exports.bids = function(req, res) {
 				if (err) console.error(err);
 				else console.log('[' + logDatetime + "] Saved Bid Mapper id " + model.id + ' for ['+ bidReq.site.id +', '+ bidding.AdCampaignBannerPreviewID +']');
 			});
-			*/
 		});
 		console.timeEnd("TIMER: Save Bid Mapper to Database");
 
 		// Save bid response
 		console.timeEnd("TIMER: BIDDNG ...");
-	}, bidTimeout);
+	}, bidReq.tmax);
 
 
 	//clearTimeout(biddingTimeout);
@@ -232,7 +239,7 @@ var generateEmptyResponse = function(res) {
 	console.info("============================================================");
 }
 
-var generateBidResponse = function(res, bidReq, bidRes) {
+var generateBidResponse = function(res, bidReq, bidRes, biddingID) {
 	var logDatetime = new Date();
 	console.time("TIMER: Generate Bid Response");
 
@@ -265,7 +272,6 @@ var generateBidResponse = function(res, bidReq, bidRes) {
 	// ===============================================
 	var bidResponse = {};
 	bidResponse.id = bidReq.id; // Bid response id 
-
 
 	bidResponse.seatbid = [
 		{
@@ -313,6 +319,9 @@ var generateBidResponse = function(res, bidReq, bidRes) {
 		}
 	];
 
+	// Debug isolation multi bid
+	console.log("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~`> bidResponse ["+ biddingID +"] ", bidResponse.seatbid[0]);
+
 	res.json(bidResponse).end();
 	console.log(">>> ["+ logDatetime +"] SEND BIDDING RESPONSE!!");
 	console.info("============================================================");
@@ -354,7 +363,7 @@ var getAdzone = function(adzoneId) {
 	return result;
 }
 
-var bid = function(newImp, biddingQueue, agent) {
+var bid = function(newImp, biddingID, agent) {
 	var logDatetime = new Date();
 	
 	if (isBidTimeout) return false; // Bidding timeout
@@ -438,17 +447,17 @@ var bid = function(newImp, biddingQueue, agent) {
 		banner.BidsCounter++;
 
 		// Start do bidding
-		doBid(banner, biddingQueue);
+		doBid(banner, biddingID);
 	});
 }
 
-var doBid = function(banner, biddingQueue) {
+var doBid = function(banner, biddingID) {
 	if (!banner) return false;
 
 	console.info("DOBID: Creative ["+ banner.AdCampaignBannerPreviewID +"] bid [$"+ banner.BidAmount +"] as ", getBidType(banner.BidType));
 
 	// console.log("BID BANNER: ", banner);
-	biddingQueue.push(banner);
+	biddingQueue[biddingID].data.push(banner);
 }
 
 var getBidType = function(bidTypeId) {
