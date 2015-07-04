@@ -25,6 +25,11 @@ var AdzoneDailyTracker = Model.extend({
 	idAttribute: 'AdzoneDailyTrackerID'
 });
 
+var AdCampaignBannerPreview = Model.extend({
+	tableName: 'AdCampaignBannerPreview',
+	idAttribute: 'AdCampaignBannerPreviewID'
+});
+
 // ========================
 
 function twoDigits(d) {
@@ -348,6 +353,10 @@ ImpLog.find({
 
 		}
 	});
+
+
+// ================================================================
+// Re-counter AdCampaignBannerPreview base on AdBannerDailyTracker
 
 
 var getAdzoneById = function(adzoneId) {

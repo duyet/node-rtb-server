@@ -30,12 +30,20 @@ var Publishers = {
 		q += "ON tb1.PublisherInfoID = tb2.AdOwnerID ";
 		q += "INNER JOIN ";
 		q += 	"(SELECT *, `DateCreated` as `WebsiteDateCreated`, `DateUpdated` as `WebsiteDateUpdated`, `ApprovalFlag` as `WebsiteApprovalFlag` FROM `PublisherWebsite`) AS tb3 ";
-		q +=  "ON tb3.DomainOwnerID = tb1.PublisherInfoID";
+		q +=  "ON tb3.DomainOwnerID = tb1.PublisherInfoID ";
+		q += "INNER JOIN ";
+		q += 	"(SELECT user_id, PublisherInfoID FROM auth_Users WHERE `PublisherInfoID` IS NOT NULL AND `user_enabled` = 1) AS tb4 ";
+		q += "ON tb4.PublisherInfoID = tb1.PublisherInfoID";
 
 		connection.query(q, function(err, rows, fields) {
 			if (err || !rows) throw err;
 
 			rows.forEach(function(row, i) {
+				// Fix 
+				row.PublisherInfoID = row.user_id;
+				row.AdOwnerID = row.user_id;
+
+				console.log(row)
 				var isExists = false;
 				for (var jj in Publishers.data) {
 					if (isExists) return false;
@@ -48,7 +56,7 @@ var Publishers = {
 					PublisherInfoID 	: row.PublisherInfoID, 
 					Name 				: row.Name, 
 					Email 				: row.Email, 
-				//	Domain 				: row.Domain, 
+					Domain 				: row.Domain, 
 					IABCategory 		: row.IABCategory, 
 					DateCreated 		: row.DateCreated, 
 					DateUpdated 		: row.DateUpdated, 
@@ -65,6 +73,7 @@ var Publishers = {
 
 				var publisherWebsite = [];
 				for (var jjj in rows) {
+					rows[jjj].PublisherInfoID = rows[jjj].user_id; // Fix
 					if (rows[jjj].PublisherInfoID == row.PublisherInfoID) {
 						var _isExistsWebsite = false;
 						publisherWebsite.forEach(function(web) {
@@ -98,6 +107,7 @@ var Publishers = {
 
 				var publisherAdzone = [];
 				for (var jjj in rows) {
+					rows[jjj].PublisherInfoID = rows[jjj].user_id; // Fix
 					if (rows[jjj].PublisherInfoID == row.PublisherInfoID) {
 						var _isExistsAdzone = false;
 						publisherAdzone.forEach(function(adzone) {
@@ -105,7 +115,7 @@ var Publishers = {
 							if (adzone.PublisherAdZoneID == rows[jjj].PublisherAdZoneID) _isExistsAdzone = true;
 						});
 
-						// console.error("Check adzone of ["+ rows[jjj].PublisherInfoID +"]["+ rows[jjj].PublisherAdZoneID +"] => " , _isExistsAdzone);
+						console.error("Check adzone of ["+ rows[jjj].PublisherInfoID +"]["+ rows[jjj].PublisherAdZoneID +"] => " , _isExistsAdzone);
 
 						if (!_isExistsAdzone) {
 							//var _adzoneRow = rows[jjj];
