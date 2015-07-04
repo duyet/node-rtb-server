@@ -45,11 +45,11 @@ var date = new Date(), y = date.getFullYear(), m = date.getMonth();
 var from = new Date(y, m, 1);
 var to = new Date(y, m + 1, 0);
 
-
 /**
  * InternalTransaction for Campaign 
  */
 AdBannerDailyTracker.query(function(qb) {
+	// Select record from AdBannerDailyTracker in all this month
 	qb.where('DateCreated', '>', from.toMysqlDate()).andWhere('DateCreated', '<=', to.toMysqlDate())
 }).fetchAll().then(function(model) {
 	if (model && model.models && BGateAgent && BGateAgent.agents) {
