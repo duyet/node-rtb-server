@@ -53,6 +53,9 @@ module.exports = function(app) {
 	app.route(routePath.ping)
 		.all(ping.pingme);
 
+	// =====================================
+	// MANAGER
+	// =====================================
 	// Manager agent 
 	app.route(routePath.manager_agent)
 		.get(manager.agent);
@@ -62,6 +65,10 @@ module.exports = function(app) {
 	// Manager banner
 	app.route(routePath.manager_banner)
 		.get(manager.banner);
+
+	// Manager Publisher
+	app.route(routePath.manager_publisher)
+		.get(manager.publisher);
 
 	// =======================================
 	// TRIGGER

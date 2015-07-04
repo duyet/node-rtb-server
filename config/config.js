@@ -43,8 +43,10 @@ module.exports = {
 		bidrequest: '/bidrequest',
 		win: '/win_notice',
 
+		// Manager
 		manager_agent: '/manager/agent',
 		manager_banner: '/manager/banner',
+		manager_publisher: '/manager/publisher',
 
 		// Trigger refresh
 		trigger_reset_agent: '/trigger/refresh/agent',

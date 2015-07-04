@@ -1,7 +1,8 @@
 'use strict';
 
 var config = require('../config/config');
-var BGateAgent = require('../helper/BgateAgent.js');
+var BGateAgent = require('../helper/BgateAgent');
+var PublisherAgent = require('../helper/Publisher');
 
 exports.agent = function(req, res) {
 	console.log("REQ: ["+ new Date() +"] Fetch Agent info from REST API");
@@ -54,4 +55,13 @@ exports.banner = function(req, res) {
 	}
 
 	res.json(banners);
+};
+
+exports.publisher = function(req, res) {
+	console.log("REQ: ["+ new Date() +"] Fetch Agent info from REST API");
+	if (!req.query || !req.query.s || req.query.s != config.trigger_token || !PublisherAgent) {
+		return res.status(404).send("Not Found");
+	}
+
+	res.json(PublisherAgent.data);
 };
