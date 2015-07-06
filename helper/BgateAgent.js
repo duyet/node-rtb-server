@@ -172,6 +172,14 @@ var passSelfBannerFilter = function(banner) {
 		return false;
 	}
 
+	// Banner Approval
+	// Approval: "0" => Banned, "1" => Stop, "2" => Running, "3" => Auto Approved
+	banner.Approval = parseInt(banner.Approval);
+	if (banner.Approval != 2 && banner.Approval != 3) {
+		console.error("WARN: Banner ["+ banner.AdCampaignID +"] was banned or stopped (status: "+ banner.Approval +"), skip.")
+		return false;
+	}
+
 	// Banner from [date] to [date]
 	if (banner.StartDate) {
 		var startDate = moment(banner.StartDate);
@@ -229,6 +237,7 @@ var initBannerAttributes = function(_rowBanner) {
 		MaximumBudget: _rowBanner.MaximumBudget,
 
 		Active: _rowBanner.Active,  // Banner Active status
+		Approval : _rowBanner.Approval,
 
 		DateCreated: _rowBanner.DateCreated,
 		DateUpdated: _rowBanner.DateUpdated,
