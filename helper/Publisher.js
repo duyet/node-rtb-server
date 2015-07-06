@@ -22,6 +22,9 @@ var Publishers = {
 	init: function(next) {
 		console.info("INFO: ["+ new Date() +"] Init Publisher Agent Data.");
 
+		// Reset 
+		Publishers.data = [];
+
 		var q = "";
 		q += "SELECT * FROM ";
 		q += 	"(SELECT * FROM `PublisherInfo`) AS tb1 ";
@@ -43,7 +46,6 @@ var Publishers = {
 				row.PublisherInfoID = row.user_id;
 				row.AdOwnerID = row.user_id;
 
-				console.log(row)
 				var isExists = false;
 				for (var jj in Publishers.data) {
 					if (isExists) return false;
@@ -115,7 +117,7 @@ var Publishers = {
 							if (adzone.PublisherAdZoneID == rows[jjj].PublisherAdZoneID) _isExistsAdzone = true;
 						});
 
-						console.error("Check adzone of ["+ rows[jjj].PublisherInfoID +"]["+ rows[jjj].PublisherAdZoneID +"] => " , _isExistsAdzone);
+					// 	console.error("Check adzone of ["+ rows[jjj].PublisherInfoID +"]["+ rows[jjj].PublisherAdZoneID +"] => " , _isExistsAdzone);
 
 						if (!_isExistsAdzone) {
 							//var _adzoneRow = rows[jjj];
