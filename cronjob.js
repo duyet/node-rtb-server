@@ -17,10 +17,15 @@ var syncBanner = setInterval(function() {
 	run(rootPath + "/cronjob/sync-banner-counter.js");
 }, syncBannerEvery);
 
-var bannerAdzoneDailyTrackerEvery = 24 * 60 * 60 * 1000; // 24 hour
-var bannerAdzoneDailyTracker = setInterval(function() {
-	run(rootPath + "/cronjob/banner-adzone-daily-tracker.js");
-}, bannerAdzoneDailyTrackerEvery);
+var bannerDailyTrackerEvery = 24 * 60 * 60 * 1000; // 24 hour
+var bannerDailyTracker = setInterval(function() {
+	run(rootPath + "/cronjob/banner-daily-tracker.js");
+}, bannerDailyTrackerEvery);
+
+var adzoneDailyTrackerEvery = 24 * 60 * 60 * 1000; // 24 hour
+var adzoneDailyTracker = setInterval(function() {
+	run(rootPath + "/cronjob/adzone-daily-tracker.js");
+}, adzoneDailyTrackerEvery);
 
 var internalTransactionEvery = 7 * 24 * 60 * 60 * 1000; // 7 days
 var internalTransaction = setInterval(function() {

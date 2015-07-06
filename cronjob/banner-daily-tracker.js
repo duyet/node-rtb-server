@@ -195,7 +195,6 @@ ImpLog.find({
 										NetOutcome: report.NetOutcome,
 										DateUpdated: report.DateUpdated
 									}).save().then(function(model) {
-										console.log("xx",model);
 										console.log("INFO: Save new report banner ["+ report.AdCampaignBannerID +"] to MySQL Server!");
 									});
 								}
@@ -206,8 +205,6 @@ ImpLog.find({
 						
 					}
 				});
-
-
 		}
 	});
 
@@ -241,8 +238,7 @@ ImpLog.find({
 				// Check for exists in reports_AdzoneDailyTracker array
 				var isExists = false;
 				for (var j = 0; j < reports_AdzoneDailyTracker.length; j++) {
-					
-					if (!isExists && reports_AdzoneDailyTracker[j].PublisherAdZoneID == adzone_id) {
+					if (!isExists && reports_AdzoneDailyTracker[j].PublisherAdZoneID == adzone.PublisherAdZoneID) {
 						isExists = true;
 						reports_AdzoneDailyTracker[j].ImpCount++;
 						reports_AdzoneDailyTracker[j].Income += row.NetPrice || 0.0;
@@ -278,6 +274,7 @@ ImpLog.find({
 				function(err, rows) {
 					if (err) console.log(err);
 					else {
+
 						for (var i = 0; i < rows.length; i++) {
 							var row = rows[i];
 
@@ -340,7 +337,7 @@ ImpLog.find({
 										DateUpdated: report.DateUpdated
 									}).save().then(function(model) {
 										console.log("xx",model);
-										console.log("INFO: Save new report ["+ report.PublisherAdZoneID +"] to MySQL Server!");
+										console.log("INFO: Save new report banner ["+ report.PublisherAdZoneID +"] to MySQL Server!");
 									});
 								}
 							});

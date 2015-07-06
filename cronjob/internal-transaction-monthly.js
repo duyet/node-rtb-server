@@ -45,6 +45,14 @@ var date = new Date(), y = date.getFullYear(), m = date.getMonth();
 var from = new Date(y, m, 1);
 var to = new Date(y, m + 1, 0);
 
+// ==================================
+// Clear all InternalTransaction in that month
+InternalTransaction.query(function(qb) {
+	qb.where('DateCreated', '>', from.toMysqlDate()).andWhere('DateCreated', '<=', to.toMysqlDate())
+}).fetchAll().then(function(model) {
+
+});
+
 /**
  * InternalTransaction for Campaign 
  */
@@ -137,7 +145,7 @@ AdzoneDailyTracker.query(function(qb) {
 				var WebsiteObject = {
 					PolymorphicID 		: Website.PublisherWebsiteID,  // PublisherWebsiteID
 					PolymorphicType 	: 'website',   // Type AdCampaign
-					TransactionType 	: 'income',
+					TransactionType 	: 'outcome',
 					UserID 				: Website.PublisherInfoID,
 					GrossMoney 			: 0.0,
 					NetMoney 			: 0.0,
