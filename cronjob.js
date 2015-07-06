@@ -12,24 +12,27 @@ function puts(error, stdout, stderr) {
 	if (error !== null) console.log('exec error: ' + error);
 }
 
-var syncBannerEvery = 10 * 60 * 1000; // 2 min
+var min 	= 1000 * 60;
+var hour 	= 1000 * 60 * 60; 
+
+var syncBannerEvery = 5 * min; // 2 min
 var syncBanner = setInterval(function() {
 	run(rootPath + "/cronjob/sync-banner-counter.js");
 }, syncBannerEvery);
 
-var bannerDailyTrackerEvery = 24 * 60 * 60 * 1000; // 24 hour
+var bannerDailyTrackerEvery = 5 * min; // 24 * hour; // 24 hour
 var bannerDailyTracker = setInterval(function() {
 	run(rootPath + "/cronjob/banner-daily-tracker.js");
 }, bannerDailyTrackerEvery);
 
-var adzoneDailyTrackerEvery = 24 * 60 * 60 * 1000; // 24 hour
+var adzoneDailyTrackerEvery = 5 * min; // 24 * hour; // 24 hour
 var adzoneDailyTracker = setInterval(function() {
 	run(rootPath + "/cronjob/adzone-daily-tracker.js");
 }, adzoneDailyTrackerEvery);
 
-var internalTransactionEvery = 7 * 24 * 60 * 60 * 1000; // 7 days
+var internalTransactionEvery = 1 * 24 * hour; // every days
 var internalTransaction = setInterval(function() {
-	run(rootPath + "/cronjob/internal-transaction-monthly.js");
+	run(rootPath + "/cronjob/internal-transaction-daily.js");
 }, internalTransactionEvery);
 
 var run = function(path) {

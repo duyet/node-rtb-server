@@ -8,7 +8,7 @@ var p = url.parse(config.domain);
 var options = {
   host: p.host,
   port: config.port,
-  path: config.routes.sync_route + '?s=' + config.trigger_token,
+  path: config.routes.sync_counter + '?s=' + config.trigger_token,
   method: 'GET'
 };
 
