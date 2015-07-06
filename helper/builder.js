@@ -44,8 +44,8 @@ exports.WinBidUrlForRubiCon = function(bidReq, bid_res) {
 	url += '&crid=' + bid_res.AdCampaignBannerPreviewID || 0;
 	url += '&cid=' + bid_res.AdCampaignID || 0;
 	url += '&type=win_notice_rubicon';
-	url += '&impId=' + bidReq.id;
-	url += '&PublisherAdZoneID=' + bid_res.id || 0;
+	url += '&impId=' + bid_res.impId;
+	url += '&PublisherAdZoneID=' + bid_res.impId || 0;
 	// url += '&auctionId=' + bid_res.auctionId;
 	url += '&site=' + bidReq.site.page;
 	url += '&price=${AUCTION_PRICE:BF}';
@@ -109,7 +109,8 @@ exports.ImpTrackerUrl = function(banner, PublisherAdZoneID) {
 
 	var url = '';
 	url += config.domain + ':' + config.port + '' + route.imp_tracker;
-	url += '?pid='+ exports.genHash(String(banner.AdCampaignBannerPreviewID));//bcrypt.hashSync(String(bid_res.AdCampaignBannerPreviewID), bid_res.bgateSalt);
+	url += '?ppid='+ exports.genHash(String(banner.AdCampaignBannerPreviewID));//bcrypt.hashSync(String(bid_res.AdCampaignBannerPreviewID), bid_res.bgateSalt);
+	url += '&impId=' + PublisherAdZoneID;
 	url += '&PublisherAdZoneID=' + PublisherAdZoneID;
 	url += '&AdCampaignBannerID=' + banner.AdCampaignBannerPreviewID;
 	url += '&type=imp_tracker';
@@ -146,7 +147,7 @@ exports.BannerRenderLink = function(bidReq, bid_res) {
 	var url = config.domain + ':' + config.port + '' + route.banner_render;
 	url += '?type=banner';
 	url += '&bidId=' + bidReq.id || 'none';
-	url += '&PublisherAdZoneID=' + parseInt(bidReq.site.id) || 0; 
+	url += '&PublisherAdZoneID=' + parseInt(bid_res.impId) || 0; 
 	url += '&bannerId=' + bid_res.AdCampaignBannerPreviewID || 0;
 	url += '&width=' + bid_res.Width || 0;
 	url += '&height=' + bid_res.Height || 0;
