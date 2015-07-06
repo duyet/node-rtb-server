@@ -89,27 +89,47 @@ var updateImpCounterInBGateAgent = function(bannerId, price) {
 				agent.banner[i].ImpressionsCounter++;
 
 				// Update current spend 
-				if (agent.banner[i].BidType != config.bid_type.CPM) {
+				if (agent.banner[i].BidType == config.bid_type.CPM) {
 					agent.banner[i].CurrentSpend += price;
 				}
 
-				// Update campagin counter
+				// Update campagin counter and check max 
 				for (var j = 0; j < agent.campaign.length; j++) {
 					if (agent.campaign[j].AdCampaignID == agent.banner[i].AdCampaignID) {
 						agent.campaign[j].CampaignImpressionsCounter++;
+						agent.campaign[j].CurrentSpend += price;
+						agent.campaign[j].MonthlySpend += price;
 
 						// TODO: Check max impression of agent
 						if (agent.campaign[j].CampaignImpressionsCounter >= agent.campaign[j].MaxImpressions) {
-							console.error("WARN: Campaign ["+ agent.campaign[j].AdCampaignID +"] out of max expression ["+ agent.campaign[j].MaxImpressions +"], disable this campaign.");
-							agent.campaign[j].Active = 0;
+							console.error("WARN: Campaign ["+ agent.campaign[j].AdCampaignID +"] out of max impression ["+ agent.campaign[j].MaxImpressions +"], disable this campaign.");
+							agent.campaign[j].CampaignApproval = 1;
 							// Disable all banner of this campaign
 							for (var ii = 0; ii < agent.banner.length; ii++) {
 								if (agent.banner[ii].AdCampaignID == agent.campaign[j].AdCampaignID) {
-									agent.banner[ii].Active = 0;
+									agent.banner[ii].Approval = 1;
+									campaignCurrentSpend += agent.banner[ii].CurrentSpend;
 									console.error("WARN: Campaign ["+ agent.campaign[j].AdCampaignID +"] out of max expression ["+ agent.campaign[j].MaxImpressions +"], disable banner ["+ agent.banner[ii].AdCampaignBannerPreviewID +"].");
 								}
 							}
 						}
+
+						// Check max spend campaign
+						if (agent.campaign[j].MaxSpend > 0) {
+							if (agent.campaign[j].CurrentSpend >= agent.campaign[j].MaxSpend) {
+								console.error("WARN: Campaign ["+ agent.campaign[j].AdCampaignID +"] out of max spend ["+ agent.campaign[j].MaxSpend +"], disable this campaign.");
+								agent.campaign[j].CampaignApproval = 1;
+								// Disable all banner of this campaign
+								for (var ii = 0; ii < agent.banner.length; ii++) {
+									if (agent.banner[ii].AdCampaignID == agent.campaign[j].AdCampaignID) {
+										agent.banner[ii].Approval = 1;
+										campaignCurrentSpend += agent.banner[ii].CurrentSpend;
+										console.error("WARN: Campaign ["+ agent.campaign[j].AdCampaignID +"] out of max spend ["+ agent.campaign[j].MaxSpend +"], disable banner ["+ agent.banner[ii].AdCampaignBannerPreviewID +"].");
+									}
+								}
+							}
+						}
+						
 					}
 				}
 
@@ -124,6 +144,8 @@ var updateImpCounterInBGateAgent = function(bannerId, price) {
 var updateCounterInPublisherAgent = function(adzoneId, price) {
 	if (!PublisherAgent || !PublisherAgent.data) return false;
 
+	console.log(">>>>>> Run update counter in Publisher agent")
+
 	var updated = false;
 	PublisherAgent.data.forEach(function(pub) {
 		if (!pub || !pub.Adzone) return false;
@@ -136,10 +158,11 @@ var updateCounterInPublisherAgent = function(adzoneId, price) {
 
 				pub.Balance += price || 0.0; // Update Balance
 
-				console.info(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> Current Balance [$"+ pub.Balance +"]");
+			//	console.info(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> Current Balance [$"+ pub.Balance +"]");
 
 				updated = true;
-			} 
+
+			}
 		})
 	});
 

@@ -35,11 +35,11 @@ exports.counter = function(req, res) {
 		var agent = BGateAgent.agents[i];
 		if (!agent.banner) return false;
 
-		// Sync BidsCounter, ImpressionsCounter, CurrentSpend
+		// Sync BidsCounter, ImpressionsCounter, CurrentSpend, ClickCounter, Approval
 		for (var j = 0; j < agent.banner.length; j++) {
 			var banner = agent.banner[j];
 			new AdCampaignBannerPreview({AdCampaignBannerPreviewID: banner.AdCampaignBannerPreviewID, AdCampaignPreviewID: banner.AdCampaignID})
-				.save({BidsCounter: banner.BidsCounter, ImpressionsCounter: banner.ImpressionsCounter, CurrentSpend: banner.CurrentSpend, ClickCounter: banner.ClickCounter}, {patch: true})
+				.save({BidsCounter: banner.BidsCounter, ImpressionsCounter: banner.ImpressionsCounter, CurrentSpend: banner.CurrentSpend, ClickCounter: banner.ClickCounter, Approval: banner.Approval}, {patch: true})
 				.then(function(model) {
 					if (model) {
 						console.log("SYNC: ["+ new Date() +"] Sync Creative counter, Creative ["+ model.attributes.AdCampaignBannerPreviewID + "] --> {BidsCounter: " +  banner.BidsCounter + ", ImpsCounter: " + banner.ImpressionsCounter + ", CurrentSpend: " + banner.CurrentSpend +"} ");
@@ -50,12 +50,14 @@ exports.counter = function(req, res) {
 		for (var j = 0; j < agent.campaign.length; j++) {
 			var campaign = agent.campaign[j];
 			new AdCampaignPreview({AdCampaignPreviewID: campaign.AdCampaignID})
-			.save({CurrentSpend: campaign.CampaignCurrentSpend, ImpressionsCounter: campaign.CampaignImpressionsCounter}, {patch: true})
+			.save({CurrentSpend: campaign.CampaignCurrentSpend, ImpressionsCounter: campaign.CampaignImpressionsCounter, Approval: campaign.CampaignApproval}, {patch: true})
 			.then(function(model) {
 				if (model) {
-					console.info("SYNC: ["+ new Date() +"] Sync Campaign counter, Creative ["+ model.attributes.AdCampaignPreviewID +"] --> {CurrentSpend: "+  campaign.CampaignCurrentSpend +", ImpsCounter: "+ campaign.CampaignImpressionsCounter +"} ");
+					console.info("SYNC: ["+ new Date() +"] Sync Campaign counter, Creative ["+ model.attributes.AdCampaignPreviewID +"] --> {CurrentSpend: "+  campaign.CampaignCurrentSpend +", ImpsCounter: "+ campaign.CampaignImpressionsCounter +", Approval: " + campaign.CampaignApproval+"} ");
 				}
-			})
+			}).catch(function(err) {
+				console.error(err);
+			});
 		}
 	}
 
@@ -67,6 +69,8 @@ exports.counter = function(req, res) {
 			if (model) {
 				console.info("SYNC: ["+ new Date() +"] Sync Publisher ["+ model.attributes.PublisherInfoID +"] balance [$"+ model.attributes.Balance +"]");
 			}
+		}).catch(function(err) {
+			console.error(err);
 		});
 
 		// Sync Adzone: TotalRequests, TotalImpressions, TotalAmount
@@ -84,8 +88,10 @@ exports.counter = function(req, res) {
 					if (model) {
 						console.info("SYNC: ["+ new Date() +"] Sync Adzone ["+ model.attributes.PublisherAdZoneID +"] -> {request: "+ model.attributes.TotalRequests +", imp: "+ model.attributes.TotalImpressions +", amount: $"+ adzone.TotalAmount +"}");
 					}
-				})
-			});
+				}).catch(function(err) {
+					console.error("Sync Adzone Error: ", err);
+				});
+			})
 		}
 	});
 
@@ -98,10 +104,15 @@ exports.dailytracker = function(req, res) {
 	}
 
 	console.info("SYNC: ["+ new Date() +"] Sync daily tracker.");
-	console.info('node '+ __dirname +'/../cronjob/banner-adzone-daily-tracker.js');
-	exec('node '+ __dirname +'/../cronjob/banner-adzone-daily-tracker.js', function(error, stdout, stderr) {
+	console.info('node '+ __dirname +'/../cronjob/adzone-daily-tracker.js');
+	console.info('node '+ __dirname +'/../cronjob/banner-daily-tracker.js');
+	exec('node '+ __dirname +'/../cronjob/adzone-daily-tracker.js', function(error, stdout, stderr) {
 		console.log(error, stdout, stderr);
 	});
+	exec('node '+ __dirname +'/../cronjob/banner-daily-tracker.js', function(error, stdout, stderr) {
+		console.log(error, stdout, stderr);
+	});
+	
 	res.send('ok');
 }
 
