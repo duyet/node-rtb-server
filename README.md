@@ -15,6 +15,9 @@
 * Install Nodejs, NPM, PM2
 * Start PM2
 
+# Bidding Logs Server
+![](http://i.imgur.com/jPVRbPb.png)
+
 # SETUP BGATE_ENV AND UBUNTU CRONTAB
 
 Run ./bgate_env.sh to settup bgate ENV.
