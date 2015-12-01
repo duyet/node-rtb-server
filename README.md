@@ -2,7 +2,7 @@
 
 * Version: 0.0.1
 * Nodejs & NPM
-* Author: Van-Duyet Le (lvduit)
+* Author: Van-Duyet Le (duyetdev)
 * Copyright (c) 2015
 
 # Real-time Bidding 
