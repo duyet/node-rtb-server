@@ -4,7 +4,9 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "snyk-protect": "snyk protect",
+    "prepublish": "npm run snyk-protect"
   },
   "author": "",
   "license": "ISC",
@@ -29,7 +31,7 @@
     "express-validator": "^2.12.1",
     "file-stream-rotator": "0.0.6",
     "glob": "^5.0.10",
-    "helmet": "^0.9.1",
+    "helmet": "^3.8.2",
     "jade": "^1.11.0",
     "jsonschema": "^1.0.1",
     "knex": "^0.8.6",
@@ -44,6 +46,8 @@
     "q": "^1.4.1",
     "redis": "^0.12.1",
     "string-hash": "^1.1.0",
-    "uuid": "^2.0.1"
-  }
+    "uuid": "^2.0.1",
+    "snyk": "^1.41.1"
+  },
+  "snyk": true
 }
