@@ -1,0 +1,14 @@
+# Snyk (https://snyk.io) policy file, patches or ignores known vulnerabilities.
+version: v1.13.3
+ignore: {}
+# patches apply the minimum changes required to fix a vulnerability
+patch:
+  'npm:debug:20170905':
+    - express-mysql-session > mysql-connection-manager > debug:
+        patched: '2019-04-15T05:39:56.588Z'
+  'npm:ms:20170412':
+    - express-mysql-session > mysql-connection-manager > debug > ms:
+        patched: '2019-04-15T05:39:56.588Z'
+  'npm:uglify-js:20151024':
+    - jade > transformers > uglify-js:
+        patched: '2019-04-15T05:39:56.588Z'
