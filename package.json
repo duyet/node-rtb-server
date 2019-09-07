@@ -35,7 +35,7 @@
     "jade": "^1.11.0",
     "jsonschema": "^1.0.1",
     "knex": "^0.8.6",
-    "lodash": "^3.9.3",
+    "lodash": "^4.0.0",
     "merge": "^1.2.0",
     "method-override": "^2.3.3",
     "moment": "^2.10.3",
