@@ -29,9 +29,9 @@
     "bluebird": "^2.9.24"
   },
   "devDependencies": {
-    "mocha": "^2.2.4",
-    "moment": "^2.10.2",
-    "should": "^6.0.1",
+    "mocha": "2.5.3",
+    "moment": "2.24.0",
+    "should": "6.0.3",
     "timekeeper": "0.0.5"
   },
   "gitHead": "1dff39612a8e36ba34dc2e0decc7f3e4a5184a06",

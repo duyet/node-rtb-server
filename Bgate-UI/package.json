@@ -38,17 +38,17 @@
     "mdns2": "^2.1.0"
   },
   "devDependencies": {
-    "grunt-browserify": "^2.0",
-    "grunt-contrib-watch": "^0.6",
-    "grunt-contrib-less": "^0.11",
-    "nodeunit": "^0.9",
-    "should": "^4.0",
-    "sinon": "^1.8",
-    "istanbul": "^0.3",
-    "coveralls": "^2.8",
-    "protractor": "^1.0",
-    "proxyquire": "^1.0",
-    "testsuite": "^1.0"
+    "grunt-browserify": "2.1.4",
+    "grunt-contrib-watch": "0.6.1",
+    "grunt-contrib-less": "0.11.4",
+    "nodeunit": "0.9.5",
+    "should": "4.6.5",
+    "sinon": "1.17.7",
+    "istanbul": "0.3.22",
+    "coveralls": "2.13.3",
+    "protractor": "1.8.0",
+    "proxyquire": "1.8.0",
+    "testsuite": "1.0.1"
   },
   "bin": {
     "pm2-web": "bin/pm2-web.sh"
