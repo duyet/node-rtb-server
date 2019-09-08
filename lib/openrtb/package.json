@@ -32,7 +32,7 @@
     "mocha": "2.5.3",
     "moment": "2.24.0",
     "should": "6.0.3",
-    "timekeeper": "0.1.1"
+    "timekeeper": "2.2.0"
   },
   "gitHead": "1dff39612a8e36ba34dc2e0decc7f3e4a5184a06",
   "_id": "openrtb@0.0.5",
