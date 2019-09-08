@@ -15,7 +15,7 @@
     "bluebird": "^2.9.30",
     "body-parser": "^1.13.1",
     "bookshelf": "^0.15.0",
-    "checkit": "^0.5.1",
+    "checkit": "^0.7.0",
     "compression": "^1.5.0",
     "connect-flash": "^0.1.1",
     "connect-multiparty": "^1.2.5",
