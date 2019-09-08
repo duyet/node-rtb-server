@@ -12,7 +12,7 @@
   "license": "ISC",
   "dependencies": {
     "bcrypt": "^3.0.0",
-    "bluebird": "^2.9.30",
+    "bluebird": "^3.0.0",
     "body-parser": "^1.13.1",
     "bookshelf": "^0.15.0",
     "checkit": "^0.7.0",
