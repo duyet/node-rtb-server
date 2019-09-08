@@ -22,7 +22,7 @@
     "pm2-interface": "^2.0",
     "ws": "^0.8.0",
     "wildemitter": "^1.0",
-    "cjson": "^0.3",
+    "cjson": "^0.5.0",
     "minimist": "^1.0",
     "semver": "^6.0.0",
     "pwuid": "^1.0",
