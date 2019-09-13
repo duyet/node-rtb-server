@@ -31,7 +31,7 @@
   "devDependencies": {
     "mocha": "6.2.0",
     "moment": "2.24.0",
-    "should": "6.0.3",
+    "should": "13.2.3",
     "timekeeper": "2.2.0"
   },
   "gitHead": "1dff39612a8e36ba34dc2e0decc7f3e4a5184a06",
