@@ -29,7 +29,7 @@
     "express-mysql-session": "^0.4.1",
     "express-session": "^1.11.3",
     "express-validator": "^2.12.1",
-    "file-stream-rotator": "0.5.4",
+    "file-stream-rotator": "0.5.5",
     "glob": "^5.0.10",
     "helmet": "^3.6.1",
     "jade": "^1.11.0",
