@@ -30,7 +30,7 @@
     "express-session": "^1.11.3",
     "express-validator": "^6.0.0",
     "file-stream-rotator": "0.5.5",
-    "glob": "^5.0.10",
+    "glob": "^7.0.0",
     "helmet": "^3.6.1",
     "jade": "^1.11.0",
     "jsonschema": "^1.0.1",
