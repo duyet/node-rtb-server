@@ -45,7 +45,7 @@
     "should": "4.6.5",
     "sinon": "1.17.7",
     "istanbul": "0.4.5",
-    "coveralls": "2.13.3",
+    "coveralls": "3.0.6",
     "protractor": "1.8.0",
     "proxyquire": "1.8.0",
     "testsuite": "1.0.1"
