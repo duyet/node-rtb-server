@@ -1,5 +1,5 @@
 # Snyk (https://snyk.io) policy file, patches or ignores known vulnerabilities.
-version: v1.7.0
+version: v1.14.1
 ignore: {}
 # patches apply the minimum changes required to fix a vulnerability
 patch:
@@ -20,3 +20,14 @@ patch:
         patched: '2017-05-22T02:35:06.974Z'
     - express-mysql-session > mysql-connection-manager > debug > ms:
         patched: '2017-05-22T02:35:06.974Z'
+  SNYK-JS-LODASH-567746:
+    - lodash:
+        patched: '2020-05-04T05:39:57.295Z'
+    - bookshelf > lodash:
+        patched: '2020-05-04T05:39:57.295Z'
+    - checkit > lodash:
+        patched: '2020-05-04T05:39:57.295Z'
+    - express-validator > lodash:
+        patched: '2020-05-04T05:39:57.295Z'
+    - knex > lodash:
+        patched: '2020-05-04T05:39:57.295Z'
