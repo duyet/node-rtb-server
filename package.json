@@ -36,7 +36,7 @@
     "jsonschema": "^1.0.1",
     "knex": "^0.20.0",
     "lodash": "^4.0.0",
-    "merge": "^1.2.0",
+    "merge": "^2.1.0",
     "method-override": "^3.0.0",
     "moment": "^2.10.3",
     "mongoose": "^5.0.0",
