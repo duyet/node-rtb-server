@@ -30,7 +30,7 @@
   },
   "devDependencies": {
     "mocha": "8.4.0",
-    "moment": "2.27.0",
+    "moment": "2.29.1",
     "should": "13.2.3",
     "timekeeper": "2.2.0"
   },
