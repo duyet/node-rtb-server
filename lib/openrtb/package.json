@@ -29,7 +29,7 @@
     "bluebird": "^3.0.0"
   },
   "devDependencies": {
-    "mocha": "9.2.2",
+    "mocha": "10.0.0",
     "moment": "2.29.3",
     "should": "13.2.3",
     "timekeeper": "2.2.0"
