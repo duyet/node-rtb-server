@@ -31,7 +31,7 @@
     "express-validator": "^6.0.0",
     "file-stream-rotator": "0.6.1",
     "glob": "^8.0.0",
-    "helmet": "^5.0.0",
+    "helmet": "^6.0.0",
     "jade": "^1.11.0",
     "jsonschema": "^1.0.1",
     "knex": "^2.0.0",
