@@ -15,7 +15,7 @@
   },
   "dependencies": {
     "express": "^4.0.0",
-    "jade": "^1.1",
+    "pug": "^2.0.0",
     "winston": "^3.0.0",
     "underscore.string": "^3.0.0",
     "wantsit": "^2.0.0",
