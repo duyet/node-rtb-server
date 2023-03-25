@@ -32,7 +32,7 @@
     "file-stream-rotator": "1.0.0",
     "glob": "^9.0.0",
     "helmet": "^6.0.0",
-    "pug": "^2.0.0",
+    "pug": "^3.0.1",
     "jsonschema": "^1.0.1",
     "knex": "^2.0.0",
     "lodash": "^4.0.0",
