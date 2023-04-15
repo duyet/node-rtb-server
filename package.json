@@ -28,7 +28,7 @@
     "express": "^4.12.4",
     "express-mysql-session": "^3.0.0",
     "express-session": "^1.11.3",
-    "express-validator": "^6.0.0",
+    "express-validator": "^7.0.0",
     "file-stream-rotator": "1.0.0",
     "glob": "^10.0.0",
     "helmet": "^6.0.0",
