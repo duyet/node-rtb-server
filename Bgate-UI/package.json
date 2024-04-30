@@ -25,7 +25,7 @@
     "cjson": "^0.5.0",
     "minimist": "^1.0",
     "semver": "^7.0.0",
-    "pwuid": "^1.0",
+    "pwuid": "^2.0.0",
     "zepto-browserify": "^1.0",
     "moment": "^2.5",
     "mustache": "^4.0.0",
